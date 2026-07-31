@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+:root {
+  --color-paper: #e7ecdd;
+  --color-paper-light: #f3f5ea;
+  --color-ink: #24321f;
+  --color-ink-muted: #5b6b52;
+  --color-ink-dark: #14200f;
+  --color-brass: #b6923f;
+  --color-brass-light: #d9b876;
+  --color-income: #dcead1;
+  --color-income-ink: #2b4a1f;
+}
+
+@theme inline {
+  --color-paper: var(--color-paper);
+  --color-paper-light: var(--color-paper-light);
+  --color-ink: var(--color-ink);
+  --color-ink-muted: var(--color-ink-muted);
+  --color-ink-dark: var(--color-ink-dark);
+  --color-brass: var(--color-brass);
+  --color-brass-light: var(--color-brass-light);
+  --color-income: var(--color-income);
+  --color-income-ink: var(--color-income-ink);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-serif: Georgia, "Times New Roman", serif;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+/* Torn-receipt-paper card edge: a jagged top/bottom via clip-path,
+   layered over a plain rounded card for the shadow. */
+.torn-edge {
+  position: relative;
+  clip-path: polygon(
+    0% 1%, 3% 0%, 7% 1.2%, 11% 0.2%, 15% 1%, 19% 0%, 23% 1.3%, 27% 0.3%,
+    31% 1%, 35% 0%, 39% 1.2%, 43% 0.2%, 47% 1%, 51% 0%, 55% 1.3%, 59% 0.3%,
+    63% 1%, 67% 0%, 71% 1.2%, 75% 0.2%, 79% 1%, 83% 0%, 87% 1.3%, 91% 0.3%,
+    95% 1%, 100% 0%,
+    100% 99%, 97% 100%, 93% 98.8%, 89% 99.8%, 85% 99%, 81% 100%, 77% 98.7%,
+    73% 99.7%, 69% 99%, 65% 100%, 61% 98.8%, 57% 99.8%, 53% 99%, 49% 100%,
+    45% 98.7%, 41% 99.7%, 37% 99%, 33% 100%, 29% 98.8%, 25% 99.8%, 21% 99%,
+    17% 100%, 13% 98.7%, 9% 99.7%, 5% 99%, 0% 100%
+  );
+}
+
+.amount {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
