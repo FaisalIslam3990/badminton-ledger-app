@@ -19,7 +19,6 @@ function isPdf(entry: Row) {
 export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
   const router = useRouter();
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [lightbox, setLightbox] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
   async function togglePaid(entry: Row) {
@@ -92,13 +91,18 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
                         PDF
                       </a>
                     ) : (
-                      <button onClick={() => setLightbox(entry.receiptSignedUrl)}>
+                      <a
+                        href={entry.receiptSignedUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title={entry.receipt_file_name ?? "Receipt"}
+                      >
                         <img
                           src={entry.receiptSignedUrl}
                           alt={entry.receipt_file_name ?? "Receipt"}
                           className="h-10 w-10 rounded border border-brass/30 object-cover"
                         />
-                      </button>
+                      </a>
                     )
                   ) : (
                     "—"
@@ -142,15 +146,6 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
           )}
         </tbody>
       </table>
-
-      {lightbox && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
-          onClick={() => setLightbox(null)}
-        >
-          <img src={lightbox} alt="Receipt" className="max-h-full max-w-full rounded shadow-xl" />
-        </div>
-      )}
     </div>
   );
 }
