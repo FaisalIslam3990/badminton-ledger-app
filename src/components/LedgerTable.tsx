@@ -12,8 +12,9 @@ function gbp(n: number) {
   return n.toLocaleString("en-GB", { style: "currency", currency: "GBP" });
 }
 
-function isPdf(entry: Row) {
-  return entry.receipt_file_url?.toLowerCase().endsWith(".pdf") ?? false;
+function receiptLabel(entry: Row) {
+  const ext = entry.receipt_file_url?.split(".").pop()?.toUpperCase();
+  return ext && ext.length <= 4 ? ext : "FILE";
 }
 
 export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
@@ -80,30 +81,15 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
                 </td>
                 <td className="px-3 py-2">
                   {entry.receiptSignedUrl ? (
-                    isPdf(entry) ? (
-                      <a
-                        href={entry.receiptSignedUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title={entry.receipt_file_name ?? "Receipt PDF"}
-                        className="flex h-10 w-10 items-center justify-center rounded border border-brass/30 bg-white text-[10px] font-medium text-ink-muted"
-                      >
-                        PDF
-                      </a>
-                    ) : (
-                      <a
-                        href={entry.receiptSignedUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title={entry.receipt_file_name ?? "Receipt"}
-                      >
-                        <img
-                          src={entry.receiptSignedUrl}
-                          alt={entry.receipt_file_name ?? "Receipt"}
-                          className="h-10 w-10 rounded border border-brass/30 object-cover"
-                        />
-                      </a>
-                    )
+                    <a
+                      href={entry.receiptSignedUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={entry.receipt_file_name ?? "Receipt"}
+                      className="flex h-10 w-10 items-center justify-center rounded border border-brass/30 bg-white text-[10px] font-medium text-ink-muted"
+                    >
+                      {receiptLabel(entry)}
+                    </a>
                   ) : (
                     "—"
                   )}
