@@ -43,6 +43,14 @@ as $$
   select role from public.user_roles where email = auth.email();
 $$;
 
+-- Admins can additionally read/add/remove any row, so they can manage
+-- who has access from within the app instead of the SQL editor.
+create policy "user_roles_admin_full_access"
+on public.user_roles for all
+to authenticated
+using (public.get_user_role() = 'admin')
+with check (public.get_user_role() = 'admin');
+
 -- ---------------------------------------------------------------------------
 -- entries: the ledger itself.
 -- ---------------------------------------------------------------------------

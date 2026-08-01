@@ -26,6 +26,11 @@ export default async function AppLayout({
                   Add Entry
                 </Link>
               )}
+              {role === "admin" && (
+                <Link href="/users" className="text-ink-muted hover:text-ink">
+                  Users
+                </Link>
+              )}
               <Link href="/account" className="text-ink-muted hover:text-ink">
                 Account
               </Link>
