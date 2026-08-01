@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getCurrentRole } from "@/lib/roles";
+import { displayIdentity } from "@/lib/username";
 import { signOut } from "./actions";
 
 export default async function AppLayout({
@@ -38,7 +39,7 @@ export default async function AppLayout({
           </div>
           <div className="flex items-center gap-3 text-sm text-ink-muted">
             <span>
-              {email} · {role ?? "no access"}
+              {email ? displayIdentity(email) : "—"} · {role ?? "no access"}
             </span>
             <form action={signOut}>
               <button type="submit" className="text-brass hover:underline">

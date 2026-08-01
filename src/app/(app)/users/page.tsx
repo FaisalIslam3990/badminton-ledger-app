@@ -3,7 +3,7 @@ import { getCurrentRole } from "@/lib/roles";
 import { redirect } from "next/navigation";
 import { AddUserForm } from "./AddUserForm";
 import { removeUser } from "./actions";
-import { isUsernameAccount, emailToUsername } from "@/lib/username";
+import { isUsernameAccount, displayIdentity } from "@/lib/username";
 
 export default async function UsersPage() {
   const { role, email: myEmail } = await getCurrentRole();
@@ -36,7 +36,7 @@ export default async function UsersPage() {
                 <td className="px-3 py-2">
                   {isUsernameAccount(u.email) ? (
                     <>
-                      {emailToUsername(u.email)}{" "}
+                      {displayIdentity(u.email)}{" "}
                       <span className="text-xs text-ink-muted">(username)</span>
                     </>
                   ) : (

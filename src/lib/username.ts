@@ -20,3 +20,12 @@ export function identifierToEmail(identifier: string) {
   const normalized = identifier.trim().toLowerCase();
   return normalized.includes("@") ? normalized : usernameToEmail(normalized);
 }
+
+// What to show on screen: the capitalized username for admin-created
+// accounts (the synthetic email is an implementation detail), or the
+// real email as-is for accounts that signed in themselves.
+export function displayIdentity(email: string) {
+  if (!isUsernameAccount(email)) return email;
+  const username = emailToUsername(email);
+  return username.charAt(0).toUpperCase() + username.slice(1);
+}
