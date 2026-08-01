@@ -21,7 +21,8 @@ export default async function LedgerPage() {
   const signedUrls = await Promise.all(
     rows.map(async (entry) => {
       if (!entry.receipt_file_url) return null;
-      const { data } = await supabase.storage.from("receipts").createSignedUrl(entry.receipt_file_url, 3600);
+      const { data, error } = await supabase.storage.from("receipts").createSignedUrl(entry.receipt_file_url, 3600);
+      if (error) console.error("Signed URL error for", entry.receipt_file_url, error);
       return data?.signedUrl ?? null;
     }),
   );
