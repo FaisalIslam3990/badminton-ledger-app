@@ -1,4 +1,4 @@
-name: Supabase keep-alive
+name: Supabase Keep-Alive
 
 # Supabase free-tier projects auto-pause after 7 days with no API
 # activity. This pings the REST API every 3 days so the project never
