@@ -26,6 +26,9 @@ export default async function AppLayout({
                   Add Entry
                 </Link>
               )}
+              <Link href="/account" className="text-ink-muted hover:text-ink">
+                Account
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-3 text-sm text-ink-muted">
