@@ -4,7 +4,7 @@ import { useActionState, useState } from "react";
 import { sendMagicLink, signInWithPassword } from "./actions";
 
 export default function LoginPage() {
-  const [mode, setMode] = useState<"magic" | "password">("magic");
+  const [mode, setMode] = useState<"magic" | "password">("password");
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-paper px-4">
