@@ -15,7 +15,7 @@ export default function LoginPage() {
         <p className="text-ink-muted text-sm mb-4">
           {mode === "magic"
             ? "Sign in with a magic link — no password needed."
-            : "Sign in with your email and password."}
+            : "Sign in with your username (or email) and password."}
         </p>
 
         {mode === "magic" ? <MagicLinkForm /> : <PasswordForm />}
@@ -71,10 +71,12 @@ function PasswordForm() {
   return (
     <form action={formAction} className="space-y-4">
       <input
-        type="email"
-        name="email"
+        type="text"
+        name="identifier"
         required
-        placeholder="you@example.com"
+        placeholder="Username or email"
+        autoCapitalize="off"
+        autoCorrect="off"
         className="w-full rounded border border-brass/40 bg-white px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-brass"
       />
       <input
@@ -93,7 +95,8 @@ function PasswordForm() {
         {pending ? "Signing in…" : "Sign in"}
       </button>
       <p className="text-xs text-ink-muted">
-        Haven&apos;t set a password yet? Use a magic link to sign in, then set one from the Account page.
+        Given a username by the admin? Use it here directly. Signed in by
+        email before? Use a magic link, then set a password from Account.
       </p>
     </form>
   );

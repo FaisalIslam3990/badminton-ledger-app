@@ -3,6 +3,7 @@ import { getCurrentRole } from "@/lib/roles";
 import { redirect } from "next/navigation";
 import { AddUserForm } from "./AddUserForm";
 import { removeUser } from "./actions";
+import { isUsernameAccount, emailToUsername } from "@/lib/username";
 
 export default async function UsersPage() {
   const { role, email: myEmail } = await getCurrentRole();
@@ -13,7 +14,7 @@ export default async function UsersPage() {
   const supabase = await createClient();
   const { data: users } = await supabase
     .from("user_roles")
-    .select("id, email, role, created_at")
+    .select("id, email, role, user_id, created_at")
     .order("created_at", { ascending: true });
 
   return (
@@ -24,7 +25,7 @@ export default async function UsersPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brass/30 text-left text-ink-muted">
-              <th className="px-3 py-2 font-normal">Email</th>
+              <th className="px-3 py-2 font-normal">Username / Email</th>
               <th className="px-3 py-2 font-normal">Role</th>
               <th className="px-3 py-2 font-normal"></th>
             </tr>
@@ -32,7 +33,16 @@ export default async function UsersPage() {
           <tbody>
             {(users ?? []).map((u) => (
               <tr key={u.id} className="border-b border-brass/10">
-                <td className="px-3 py-2">{u.email}</td>
+                <td className="px-3 py-2">
+                  {isUsernameAccount(u.email) ? (
+                    <>
+                      {emailToUsername(u.email)}{" "}
+                      <span className="text-xs text-ink-muted">(username)</span>
+                    </>
+                  ) : (
+                    u.email
+                  )}
+                </td>
                 <td className="px-3 py-2 capitalize">{u.role}</td>
                 <td className="px-3 py-2 text-right">
                   {u.email !== myEmail && (
@@ -52,8 +62,8 @@ export default async function UsersPage() {
       <div className="torn-edge bg-paper-light p-6 shadow">
         <h2 className="font-medium text-ink mb-1">Add a user</h2>
         <p className="text-ink-muted text-sm mb-4">
-          They sign in themselves with this email (magic link, or a password
-          once they set one) — no invite email is sent.
+          Set a username and password yourself and hand them over — no email
+          needed, and usernames aren&apos;t case-sensitive.
         </p>
         <AddUserForm />
       </div>

@@ -2,18 +2,20 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { identifierToEmail } from "@/lib/username";
 
 export async function signInWithPassword(
   _prevState: { error: string | null },
   formData: FormData,
 ): Promise<{ error: string | null }> {
-  const email = String(formData.get("email") ?? "").trim();
+  const identifier = String(formData.get("identifier") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
-  if (!email || !password) {
-    return { error: "Enter your email and password." };
+  if (!identifier || !password) {
+    return { error: "Enter your username/email and password." };
   }
 
+  const email = identifierToEmail(identifier);
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 

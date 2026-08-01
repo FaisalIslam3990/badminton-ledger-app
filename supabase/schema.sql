@@ -11,6 +11,10 @@ create table if not exists public.user_roles (
   id uuid primary key default gen_random_uuid(),
   email text not null unique,
   role text not null check (role in ('admin', 'viewer')),
+  -- Set for accounts the admin creates directly (username + password);
+  -- null for accounts tied to a real email that signed in themselves.
+  -- Lets removal also delete the underlying login, not just access.
+  user_id uuid,
   created_at timestamptz not null default now()
 );
 

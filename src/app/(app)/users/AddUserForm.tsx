@@ -16,10 +16,20 @@ export function AddUserForm() {
   return (
     <form ref={formRef} action={formAction} className="space-y-4">
       <input
-        type="email"
-        name="email"
+        type="text"
+        name="username"
         required
-        placeholder="caroline@example.com"
+        placeholder="Username (e.g. caroline)"
+        autoCapitalize="off"
+        autoCorrect="off"
+        className="w-full rounded border border-brass/40 bg-white px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-brass"
+      />
+      <input
+        type="text"
+        name="password"
+        required
+        minLength={8}
+        placeholder="Password (min 8 characters)"
         className="w-full rounded border border-brass/40 bg-white px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-brass"
       />
       <select
