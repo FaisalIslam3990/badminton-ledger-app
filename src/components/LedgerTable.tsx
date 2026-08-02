@@ -12,14 +12,21 @@ import { PencilIcon, TrashIcon } from "./icons";
 
 type Row = Entry & { receiptSignedUrl: string | null };
 
-type PaidFilter = "unpaid" | "awaiting" | "received" | "all";
+type PaidFilter = "unpaid" | "paid" | "awaiting" | "received" | "all";
 
 const FILTER_LABELS: Record<PaidFilter, string> = {
   unpaid: "Unpaid",
+  paid: "Paid",
   awaiting: "Awaiting",
   received: "Received",
   all: "All",
 };
+
+// Viewer's job stops at sending payment, so Awaiting vs Received is an
+// admin-only distinction (it's what she needs to confirm next) — viewer
+// just gets Unpaid/Paid/All.
+const VIEWER_TABS: PaidFilter[] = ["unpaid", "paid", "all"];
+const ADMIN_TABS: PaidFilter[] = ["unpaid", "awaiting", "received", "all"];
 
 function gbp(n: number) {
   return n.toLocaleString("en-GB", { style: "currency", currency: "GBP" });
@@ -106,6 +113,7 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
 
   const visibleEntries = entries.filter((e) => {
     if (filter === "unpaid") return !e.paid;
+    if (filter === "paid") return e.paid;
     if (filter === "awaiting") return e.paid && !e.received;
     if (filter === "received") return e.received;
     return true;
@@ -134,23 +142,28 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
       ? { emoji: "✅", text: "You're all caught up — nothing outstanding." }
       : filter === "unpaid"
         ? { emoji: "📭", text: "Nothing outstanding." }
-        : filter === "awaiting"
-          ? { emoji: "📭", text: "Nothing awaiting confirmation." }
-          : filter === "received"
-            ? { emoji: "📭", text: "Nothing received yet." }
-            : { emoji: "📭", text: "No entries yet." };
+        : filter === "paid"
+          ? { emoji: "📭", text: "Nothing paid yet." }
+          : filter === "awaiting"
+            ? { emoji: "📭", text: "Nothing awaiting confirmation." }
+            : filter === "received"
+              ? { emoji: "📭", text: "Nothing received yet." }
+              : { emoji: "📭", text: "No entries yet." };
 
   const filterCounts = {
     unpaid: entries.filter((e) => !e.paid).length,
+    paid: entries.filter((e) => e.paid).length,
     awaiting: entries.filter((e) => e.paid && !e.received).length,
     received: entries.filter((e) => e.received).length,
     all: entries.length,
   };
 
+  const tabs = role === "viewer" ? VIEWER_TABS : ADMIN_TABS;
+
   return (
     <div className="card">
       <div className="flex flex-wrap gap-2 border-b border-border p-4">
-        {(["unpaid", "awaiting", "received", "all"] as const).map((f) => (
+        {tabs.map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
