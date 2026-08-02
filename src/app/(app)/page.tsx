@@ -5,7 +5,7 @@ import { GrantTimeline } from "@/components/GrantTimeline";
 import { ViewerSummary } from "@/components/ViewerSummary";
 import { LedgerTable } from "@/components/LedgerTable";
 import { ExportCsvButton } from "@/components/ExportCsvButton";
-import { computeSummary, type Entry } from "@/lib/summary";
+import type { Entry } from "@/lib/summary";
 import Link from "next/link";
 
 export default async function LedgerPage() {
@@ -42,7 +42,6 @@ export default async function LedgerPage() {
     );
   }
 
-  const { totalSpent } = computeSummary(rows);
   const pendingConfirmCount = rows.filter((e) => e.paid && !e.received).length;
 
   // Income is money coming into the club, not part of her verify-and-pay
@@ -55,7 +54,7 @@ export default async function LedgerPage() {
       {role === "admin" ? (
         <>
           <SummaryPanel entries={rows} />
-          <GrantTimeline totalSpent={totalSpent} />
+          <GrantTimeline />
           {pendingConfirmCount > 0 && (
             <p className="text-sm text-amber-800 mb-3">
               {pendingConfirmCount} payment{pendingConfirmCount === 1 ? "" : "s"} awaiting your confirmation
