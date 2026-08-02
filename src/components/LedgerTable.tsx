@@ -121,10 +121,7 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
                   <td className="px-3 py-2 whitespace-nowrap">{entry.date}</td>
                   <td className="px-3 py-2">{entry.category ?? "—"}</td>
                   <td className="px-3 py-2">{entry.note ?? "—"}</td>
-                  <td className="amount px-3 py-2 text-right">
-                    {entry.type === "expense" ? "-" : ""}
-                    {gbp(entry.amount)}
-                  </td>
+                  <td className="amount px-3 py-2 text-right whitespace-nowrap">{gbp(entry.amount)}</td>
                   <td className="px-3 py-2">
                     {entry.receiptSignedUrl ? (
                       <a
@@ -199,10 +196,7 @@ function EntryCard({
           </p>
           <p className="text-ink">{entry.note ?? "—"}</p>
         </div>
-        <p className="amount shrink-0 font-medium text-ink">
-          {entry.type === "expense" ? "-" : ""}
-          {gbp(entry.amount)}
-        </p>
+        <p className="amount shrink-0 font-medium text-ink">{gbp(entry.amount)}</p>
       </div>
 
       <div className="mt-3 flex items-center justify-between gap-3">
