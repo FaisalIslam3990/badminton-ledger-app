@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Entry } from "@/lib/summary";
 import type { Role } from "@/lib/roles";
 import { PRESET_CATEGORIES } from "@/lib/categories";
-import { todayLocalISODate, formatDateUK } from "@/lib/date";
+import { todayLocalISODate, formatDateUK, formatDateTimeUK } from "@/lib/date";
 import { MarkPaidControl } from "./MarkPaidControl";
 
 type Row = Entry & { receiptSignedUrl: string | null };
@@ -257,11 +257,24 @@ function StatusCell({ entry, role, onChanged }: { entry: Row; role: Role; onChan
     await patch({ received: true, received_at: todayLocalISODate() });
   }
 
+  async function undoReceived() {
+    if (!confirm("Undo confirming this as received?")) return;
+    await patch({ received: false, received_at: null });
+  }
+
   if (entry.received) {
     return (
-      <span className="text-xs text-income-ink">
-        Received {entry.received_at ? formatDateUK(entry.received_at) : ""}
-      </span>
+      <div>
+        <p className="text-xs text-income-ink">Received {entry.received_at ? formatDateUK(entry.received_at) : ""}</p>
+        {entry.received_marked_at && (
+          <p className="text-[10px] text-ink-muted">confirmed {formatDateTimeUK(entry.received_marked_at)}</p>
+        )}
+        {role === "admin" && (
+          <button onClick={undoReceived} className="mt-0.5 text-[10px] text-ink-muted underline">
+            Undo
+          </button>
+        )}
+      </div>
     );
   }
 
@@ -269,10 +282,13 @@ function StatusCell({ entry, role, onChanged }: { entry: Row; role: Role; onChan
     if (role === "admin") {
       return (
         <div>
-          <p className="text-xs text-ink-muted mb-1">
+          <p className="text-xs text-ink-muted">
             Sent {entry.paid_at ? formatDateUK(entry.paid_at) : ""}
             {entry.payment_reference ? ` · ${entry.payment_reference}` : ""}
           </p>
+          {entry.paid_marked_at && (
+            <p className="text-[10px] text-ink-muted mb-1">marked {formatDateTimeUK(entry.paid_marked_at)}</p>
+          )}
           <button
             onClick={confirmReceived}
             className="rounded border border-brass/40 px-2 py-1 text-xs text-ink hover:bg-white"
@@ -283,13 +299,17 @@ function StatusCell({ entry, role, onChanged }: { entry: Row; role: Role; onChan
       );
     }
     return (
-      <button
-        onClick={undoSent}
-        title={entry.payment_reference ? `Ref: ${entry.payment_reference} — click to undo` : "Click to undo"}
-        className="text-xs text-ink-muted hover:underline"
-      >
-        Sent {entry.paid_at ? formatDateUK(entry.paid_at) : ""} — awaiting confirmation
-      </button>
+      <div>
+        <p className="text-xs text-ink-muted">
+          Sent {entry.paid_at ? formatDateUK(entry.paid_at) : ""} — awaiting confirmation
+        </p>
+        {entry.paid_marked_at && (
+          <p className="text-[10px] text-ink-muted mb-1">marked {formatDateTimeUK(entry.paid_marked_at)}</p>
+        )}
+        <button onClick={undoSent} className="text-xs text-brass underline">
+          Undo
+        </button>
+      </div>
     );
   }
 

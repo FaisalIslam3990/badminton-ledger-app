@@ -77,6 +77,11 @@ create table if not exists public.entries (
   payment_reference text,
   received boolean not null default false,
   received_at date,
+  -- Exact moment each button was pressed (auto-stamped by the trigger
+  -- below, not client-supplied) — separate from paid_at/received_at,
+  -- which are the human-chosen "date the payment actually happened".
+  paid_marked_at timestamptz,
+  received_marked_at timestamptz,
   created_at timestamptz not null default now()
 );
 
@@ -134,6 +139,8 @@ begin
       or new.receipt_file_name is distinct from old.receipt_file_name
       or new.received is distinct from old.received
       or new.received_at is distinct from old.received_at
+      or new.paid_marked_at is distinct from old.paid_marked_at
+      or new.received_marked_at is distinct from old.received_marked_at
     then
       raise exception 'Viewers may only update paid, paid_at, and payment_reference';
     end if;
@@ -146,6 +153,37 @@ drop trigger if exists trg_enforce_viewer_paid_only on public.entries;
 create trigger trg_enforce_viewer_paid_only
 before update on public.entries
 for each row execute function public.enforce_viewer_paid_only();
+
+-- Auto-stamps the exact moment paid/received flip on or off. Runs
+-- server-side regardless of what the client sends, so it can't be
+-- backdated or faked through the API.
+create or replace function public.stamp_payment_marks()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.paid = true and old.paid is distinct from true then
+    new.paid_marked_at := now();
+  elsif new.paid = false and old.paid = true then
+    new.paid_marked_at := null;
+  end if;
+
+  if new.received = true and old.received is distinct from true then
+    new.received_marked_at := now();
+  elsif new.received = false and old.received = true then
+    new.received_marked_at := null;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_stamp_payment_marks on public.entries;
+create trigger trg_stamp_payment_marks
+before update on public.entries
+for each row execute function public.stamp_payment_marks();
 
 -- ---------------------------------------------------------------------------
 -- Storage: private bucket for receipt images/PDFs. The app reads them via

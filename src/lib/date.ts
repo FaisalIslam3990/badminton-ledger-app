@@ -11,3 +11,14 @@ export function formatDateUK(iso: string) {
     year: "numeric",
   });
 }
+
+// For timestamptz values (e.g. "marked at" audit stamps) — includes time.
+export function formatDateTimeUK(iso: string) {
+  return new Date(iso).toLocaleString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
