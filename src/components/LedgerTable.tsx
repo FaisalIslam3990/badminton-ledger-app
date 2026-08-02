@@ -21,6 +21,15 @@ function receiptLabel(entry: Row) {
   return ext && ext.length <= 4 ? ext : "FILE";
 }
 
+// Whole-row/card tint reflecting payment status: yellow while sent and
+// awaiting confirmation, green once received. `type === "income"` only
+// matters for legacy rows predating the reimbursement-only model.
+function statusBgClass(entry: Row) {
+  if (entry.received || entry.type === "income") return "bg-income";
+  if (entry.paid) return "bg-pending";
+  return "";
+}
+
 export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
   const router = useRouter();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -114,10 +123,7 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
                   }}
                 />
               ) : (
-                <tr
-                  key={entry.id}
-                  className={`border-b border-brass/10 ${entry.type === "income" ? "bg-income" : ""}`}
-                >
+                <tr key={entry.id} className={`border-b border-brass/10 ${statusBgClass(entry)}`}>
                   <td className="px-3 py-2 whitespace-nowrap">{entry.date}</td>
                   <td className="px-3 py-2">{entry.category ?? "—"}</td>
                   <td className="px-3 py-2">{entry.note ?? "—"}</td>
@@ -187,7 +193,7 @@ function EntryCard({
   onChanged: () => void;
 }) {
   return (
-    <div className={`p-4 ${entry.type === "income" ? "bg-income" : ""}`}>
+    <div className={`p-4 ${statusBgClass(entry)}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs text-ink-muted">
@@ -265,9 +271,9 @@ function StatusCell({ entry, role, onChanged }: { entry: Row; role: Role; onChan
   if (entry.received) {
     return (
       <div>
-        <span className="inline-block rounded bg-income px-2 py-1 text-xs font-medium text-income-ink">
+        <p className="text-xs font-medium text-income-ink">
           Received on {entry.received_at ? formatDateUK(entry.received_at) : ""}
-        </span>
+        </p>
         {entry.received_marked_at && (
           <p className="mt-1 text-[10px] text-ink-muted">confirmed {formatDateTimeUK(entry.received_marked_at)}</p>
         )}
@@ -283,9 +289,9 @@ function StatusCell({ entry, role, onChanged }: { entry: Row; role: Role; onChan
   if (entry.paid) {
     return (
       <div>
-        <span className="inline-block rounded bg-pending px-2 py-1 text-xs font-medium text-pending-ink">
+        <p className="text-xs font-medium text-pending-ink">
           Sent on {entry.paid_at ? formatDateUK(entry.paid_at) : ""}
-        </span>
+        </p>
         {entry.payment_reference && <p className="mt-1 text-[10px] text-ink-muted">Ref: {entry.payment_reference}</p>}
         {entry.paid_marked_at && (
           <p className="mt-1 text-[10px] text-ink-muted">marked {formatDateTimeUK(entry.paid_marked_at)}</p>
