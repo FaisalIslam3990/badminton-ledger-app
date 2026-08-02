@@ -107,6 +107,15 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
   // repeating that on each row is just noise.
   const showUnpaidBadge = filter !== "unpaid";
 
+  // Admin's Status column has nothing to show under Unpaid — no badge
+  // (redundant) and no action (that's the viewer's job) — so drop the
+  // column entirely rather than render dead space. Once she marks one
+  // paid it moves to the Paid tab automatically (filter is on `paid`,
+  // not `received`), where Status carries the "Awaiting confirmation"
+  // badge and the Confirm Received action.
+  const showStatusColumn = !(role === "admin" && filter === "unpaid");
+  const columnCount = 5 + (showStatusColumn ? 1 : 0) + (role === "admin" ? 1 : 0);
+
   async function deleteEntry(id: string) {
     if (!confirm("Delete this entry? This can't be undone.")) return;
     await fetch(`/api/entries/${id}`, { method: "DELETE" });
@@ -190,7 +199,7 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
               <th className="px-4 py-3 font-medium">Note</th>
               <th className="px-4 py-3 text-right font-medium">Amount</th>
               <th className="px-4 py-3 font-medium">Receipt</th>
-              <th className="px-4 py-3 font-medium">Status</th>
+              {showStatusColumn && <th className="px-4 py-3 font-medium">Status</th>}
               {role === "admin" && <th className="px-4 py-3 text-right font-medium">Actions</th>}
             </tr>
           </thead>
@@ -226,14 +235,16 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
                       <span className="text-ink-muted">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-4">
-                    <StatusCell
-                      entry={entry}
-                      role={role}
-                      showUnpaidBadge={showUnpaidBadge}
-                      onChanged={() => router.refresh()}
-                    />
-                  </td>
+                  {showStatusColumn && (
+                    <td className="px-4 py-4">
+                      <StatusCell
+                        entry={entry}
+                        role={role}
+                        showUnpaidBadge={showUnpaidBadge}
+                        onChanged={() => router.refresh()}
+                      />
+                    </td>
+                  )}
                   {role === "admin" && (
                     <td className="whitespace-nowrap px-4 py-4 text-right">
                       <div className="flex justify-end gap-2">
@@ -251,7 +262,7 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
             )}
             {visibleEntries.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-ink-muted">
+                <td colSpan={columnCount} className="px-4 py-10 text-center text-ink-muted">
                   <p className="mb-1 text-3xl">{emptyState.emoji}</p>
                   <p>{emptyState.text}</p>
                 </td>

@@ -8,7 +8,7 @@ function gbp(n: number) {
 function StatTile({ label, value, tone }: { label: string; value: number; tone: "received" | "dark" | "light" }) {
   const toneClass = {
     received: "bg-received text-received-ink",
-    dark: "bg-ink text-white",
+    dark: "bg-card-alt text-ink",
     light: "bg-bg text-ink",
   }[tone];
   return (
