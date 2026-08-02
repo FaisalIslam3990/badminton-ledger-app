@@ -11,9 +11,11 @@ function sanitizeForPath(input: string) {
     .slice(0, 80);
 }
 
-// POST /api/entries — creates an entry. Expenses may include a "receipt"
-// file, uploaded to Storage and linked after the row is created (so the
-// storage path can be namespaced by entry id).
+// POST /api/entries — creates an expense claim. Every entry is an
+// expense now; "income" is derived from confirmed reimbursements, not
+// logged separately (see enforce_viewer_paid_only / the Status flow).
+// May include a "receipt" file, uploaded to Storage and linked after
+// the row is created (so the storage path can be namespaced by entry id).
 export async function POST(request: Request) {
   const { role } = await getCurrentRole();
   if (role !== "admin") {
@@ -22,7 +24,6 @@ export async function POST(request: Request) {
 
   const formData = await request.formData();
   const date = String(formData.get("date") ?? "");
-  const type = String(formData.get("type") ?? "");
   const category = String(formData.get("category") ?? "") || null;
   const vendor = String(formData.get("vendor") ?? "") || null;
   const note = String(formData.get("note") ?? "") || null;
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
   const receipt = formData.get("receipt");
 
   const amount = Number(amountRaw);
-  if (!date || (type !== "income" && type !== "expense") || !Number.isFinite(amount) || amount <= 0) {
+  if (!date || !Number.isFinite(amount) || amount <= 0) {
     return NextResponse.json({ error: "Invalid entry" }, { status: 400 });
   }
 
@@ -38,7 +39,7 @@ export async function POST(request: Request) {
 
   const { data: entry, error: insertError } = await supabase
     .from("entries")
-    .insert({ date, type, category, vendor, note, amount })
+    .insert({ date, type: "expense", category, vendor, note, amount })
     .select()
     .single();
 
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: insertError?.message ?? "Insert failed" }, { status: 500 });
   }
 
-  if (type === "expense" && receipt instanceof File && receipt.size > 0) {
+  if (receipt instanceof File && receipt.size > 0) {
     const ext = receipt.name.split(".").pop() || "bin";
     const displayName = `${category ?? "Receipt"} - £${amount.toFixed(2)} - ${date}`;
     const storagePath = `${entry.id}/${sanitizeForPath(displayName)}.${ext}`;

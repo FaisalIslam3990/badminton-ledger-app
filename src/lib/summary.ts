@@ -21,7 +21,10 @@ export type Entry = {
 };
 
 export function computeSummary(entries: Entry[]) {
-  const totalReceived = entries.filter((e) => e.type === "income").reduce((sum, e) => sum + e.amount, 0);
+  // There's no separate "income" ledger entry anymore — Caroline's
+  // reimbursements ARE the grant tranches, so "received" is the only
+  // source of truth for money that's actually landed.
+  const totalReceived = entries.filter((e) => e.type === "expense" && e.received).reduce((sum, e) => sum + e.amount, 0);
   const totalSpent = entries.filter((e) => e.type === "expense").reduce((sum, e) => sum + e.amount, 0);
   const outstandingToPay = entries
     .filter((e) => e.type === "expense" && !e.paid)

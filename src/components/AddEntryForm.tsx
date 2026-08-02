@@ -13,121 +13,11 @@ type ExtractedFields = {
   note: string;
 };
 
+// Every entry is an expense claim now — "income" is derived from
+// confirmed reimbursements (Section: Ledger status flow), not logged
+// separately, so there's nothing to toggle here anymore.
 export function AddEntryForm() {
   const router = useRouter();
-  const [entryType, setEntryType] = useState<"income" | "expense" | null>(null);
-
-  if (entryType === null) {
-    return (
-      <div className="flex gap-3">
-        <button
-          onClick={() => setEntryType("income")}
-          className="flex-1 torn-edge bg-income py-6 text-center font-medium text-income-ink shadow"
-        >
-          Income
-        </button>
-        <button
-          onClick={() => setEntryType("expense")}
-          className="flex-1 torn-edge bg-paper-light py-6 text-center font-medium text-ink shadow"
-        >
-          Expense
-        </button>
-      </div>
-    );
-  }
-
-  return entryType === "income" ? (
-    <IncomeForm onBack={() => setEntryType(null)} onSaved={() => router.push("/")} />
-  ) : (
-    <ExpenseForm onBack={() => setEntryType(null)} onSaved={() => router.push("/")} />
-  );
-}
-
-function BackLink({ onBack }: { onBack: () => void }) {
-  return (
-    <button onClick={onBack} className="mb-4 text-sm text-ink-muted hover:text-ink">
-      ← Change type
-    </button>
-  );
-}
-
-function IncomeForm({ onBack, onSaved }: { onBack: () => void; onSaved: () => void }) {
-  const [amount, setAmount] = useState("");
-  const [note, setNote] = useState("");
-  const [date, setDate] = useState(todayLocalISODate());
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setSaving(true);
-    setError(null);
-
-    const formData = new FormData();
-    formData.set("type", "income");
-    formData.set("date", date);
-    formData.set("amount", amount);
-    formData.set("note", note);
-
-    const res = await fetch("/api/entries", { method: "POST", body: formData });
-    setSaving(false);
-
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      setError(body.error ?? "Failed to save");
-      return;
-    }
-    onSaved();
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="torn-edge bg-paper-light p-6 shadow space-y-4">
-      <BackLink onBack={onBack} />
-      <div>
-        <label className="block text-sm text-ink-muted mb-1">Date</label>
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          required
-          className="w-full rounded border border-brass/40 bg-white px-3 py-2"
-        />
-      </div>
-      <div>
-        <label className="block text-sm text-ink-muted mb-1">Amount (£)</label>
-        <input
-          type="number"
-          inputMode="decimal"
-          step="0.01"
-          min="0.01"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          required
-          className="amount w-full rounded border border-brass/40 bg-white px-3 py-2"
-        />
-      </div>
-      <div>
-        <label className="block text-sm text-ink-muted mb-1">Note (optional)</label>
-        <input
-          type="text"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          className="w-full rounded border border-brass/40 bg-white px-3 py-2"
-        />
-      </div>
-      {error && <p className="text-sm text-red-700">{error}</p>}
-      <button
-        type="submit"
-        disabled={saving}
-        className="w-full rounded bg-brass px-4 py-2 font-medium text-ink-dark disabled:opacity-60"
-      >
-        {saving ? "Saving…" : "Save income"}
-      </button>
-    </form>
-  );
-}
-
-function ExpenseForm({ onBack, onSaved }: { onBack: () => void; onSaved: () => void }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -174,7 +64,6 @@ function ExpenseForm({ onBack, onSaved }: { onBack: () => void; onSaved: () => v
     setSaveError(null);
 
     const formData = new FormData();
-    formData.set("type", "expense");
     formData.set("date", fields.date);
     formData.set("vendor", fields.vendor);
     formData.set("amount", String(fields.amount));
@@ -190,13 +79,11 @@ function ExpenseForm({ onBack, onSaved }: { onBack: () => void; onSaved: () => v
       setSaveError(body.error ?? "Failed to save");
       return;
     }
-    onSaved();
+    router.push("/");
   }
 
   return (
     <div className="torn-edge bg-paper-light p-6 shadow space-y-4">
-      <BackLink onBack={onBack} />
-
       {!file && (
         <div className="space-y-3">
           <p className="text-sm text-ink-muted">Photograph or upload the receipt.</p>

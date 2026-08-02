@@ -10,8 +10,15 @@ export type GrantMilestone = {
   releaseCondition: string;
   /** ISO date (YYYY-MM-DD), or null if there's no fixed deadline. */
   deadline: string | null;
-  /** Cumulative spend that should be evidenced by the deadline (what's
-   *  been paid out so far), or null if not applicable. */
+  /** Cumulative spend that should be evidenced by the deadline — the
+   *  running total of tranches paid out *before* this one, since each
+   *  tranche releases on evidence you've spent what you were already
+   *  given. Additive: milestone N's target = sum of amounts for
+   *  milestones 1..N-1. Compared against total logged expenses
+   *  (Ledger entries), not confirmed-received amounts — the release
+   *  condition is evidence of expenditure, not evidence of reimbursement.
+   *  Null if not applicable (the first tranche has no prior spend to
+   *  evidence). */
   targetCumulativeSpend: number | null;
 };
 

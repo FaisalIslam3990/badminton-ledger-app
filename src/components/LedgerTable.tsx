@@ -330,7 +330,6 @@ function EditCard({
   onSaved: () => void;
 }) {
   const [date, setDate] = useState(entry.date);
-  const [type, setType] = useState(entry.type);
   const [category, setCategory] = useState(entry.category ?? "");
   const [note, setNote] = useState(entry.note ?? "");
   const [amount, setAmount] = useState(String(entry.amount));
@@ -341,7 +340,7 @@ function EditCard({
     await fetch(`/api/entries/${entry.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ date, type, category, note, amount: Number(amount) }),
+      body: JSON.stringify({ date, category, note, amount: Number(amount) }),
     });
     setSaving(false);
     onSaved();
@@ -392,17 +391,6 @@ function EditCard({
           className="amount w-full rounded border border-brass/40 px-3 py-2"
         />
       </div>
-      <div>
-        <label className="block text-xs text-ink-muted mb-1">Type</label>
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value as "income" | "expense")}
-          className="w-full rounded border border-brass/40 px-3 py-2"
-        >
-          <option value="income">Income</option>
-          <option value="expense">Expense</option>
-        </select>
-      </div>
       <div className="flex gap-2 pt-1">
         <button
           onClick={save}
@@ -429,7 +417,6 @@ function EditRow({
   onSaved: () => void;
 }) {
   const [date, setDate] = useState(entry.date);
-  const [type, setType] = useState(entry.type);
   const [category, setCategory] = useState(entry.category ?? "");
   const [note, setNote] = useState(entry.note ?? "");
   const [amount, setAmount] = useState(String(entry.amount));
@@ -440,7 +427,7 @@ function EditRow({
     await fetch(`/api/entries/${entry.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ date, type, category, note, amount: Number(amount) }),
+      body: JSON.stringify({ date, category, note, amount: Number(amount) }),
     });
     setSaving(false);
     onSaved();
@@ -487,16 +474,7 @@ function EditRow({
           className="amount w-full rounded border border-brass/40 px-2 py-1 text-right"
         />
       </td>
-      <td className="px-3 py-2">
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value as "income" | "expense")}
-          className="rounded border border-brass/40 px-2 py-1"
-        >
-          <option value="income">Income</option>
-          <option value="expense">Expense</option>
-        </select>
-      </td>
+      <td className="px-3 py-2"></td>
       <td className="px-3 py-2"></td>
       <td className="px-3 py-2 whitespace-nowrap">
         <button onClick={save} disabled={saving} className="mr-3 text-brass hover:underline">
