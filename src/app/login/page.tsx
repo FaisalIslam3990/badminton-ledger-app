@@ -10,7 +10,7 @@ export default function LoginPage() {
     <main className="flex min-h-screen items-center justify-center bg-paper px-4">
       <div className="w-full max-w-sm torn-edge bg-paper-light p-8 shadow-lg">
         <h1 className="font-serif text-2xl text-ink mb-1">
-          Badminton Club Ledger
+          Badminton Club
         </h1>
         <p className="text-ink-muted text-sm mb-4">
           {mode === "magic"

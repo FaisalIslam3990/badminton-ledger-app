@@ -1,4 +1,4 @@
-import { GRANT_MILESTONES } from "@/lib/budget";
+import { GRANT_MILESTONES, PROJECT_DEADLINE } from "@/lib/budget";
 
 function gbp(n: number) {
   return n.toLocaleString("en-GB", { style: "currency", currency: "GBP" });
@@ -81,10 +81,14 @@ export function GrantTimeline() {
           );
         })}
       </div>
-      <p className="mt-3 text-xs text-ink-muted">
-        Amounts shown are cumulative grant unlocked as of each milestone. Release still depends on
-        hitting a spend target — not yet confirmed.
-      </p>
+      <div className="mt-2 flex items-center justify-between border-t border-brass/20 pt-2 text-xs text-ink-muted">
+        <span>Project deadline</span>
+        <span>
+          {formatDate(PROJECT_DEADLINE)}
+          {!isOverdue(PROJECT_DEADLINE) && ` · ${daysRemaining(PROJECT_DEADLINE)} days left`}
+          {isOverdue(PROJECT_DEADLINE) && " · overdue"}
+        </span>
+      </div>
     </div>
   );
 }

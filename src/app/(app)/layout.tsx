@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCurrentRole } from "@/lib/roles";
 import { displayIdentity } from "@/lib/username";
+import { AccountMenu } from "@/components/AccountMenu";
 import { signOut } from "./actions";
 
 export default async function AppLayout({
@@ -16,7 +17,7 @@ export default async function AppLayout({
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-6">
             <Link href="/" className="font-serif text-lg text-ink">
-              Badminton Club Ledger
+              Badminton Club
             </Link>
             <nav className="flex gap-4 text-sm">
               <Link href="/" className="text-ink-muted hover:text-ink">
@@ -27,26 +28,14 @@ export default async function AppLayout({
                   Add Entry
                 </Link>
               )}
-              {role === "admin" && (
-                <Link href="/users" className="text-ink-muted hover:text-ink">
-                  Users
-                </Link>
-              )}
-              <Link href="/account" className="text-ink-muted hover:text-ink">
-                Account
-              </Link>
             </nav>
           </div>
-          <div className="flex items-center gap-3 text-sm text-ink-muted">
-            <span>
-              {email ? displayIdentity(email) : "—"} · {role ?? "no access"}
-            </span>
-            <form action={signOut}>
-              <button type="submit" className="text-brass hover:underline">
-                Sign out
-              </button>
-            </form>
-          </div>
+          <AccountMenu
+            identity={email ? displayIdentity(email) : "—"}
+            role={role ?? "no access"}
+            isAdmin={role === "admin"}
+            signOutAction={signOut}
+          />
         </div>
       </header>
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6">

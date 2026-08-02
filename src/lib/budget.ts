@@ -20,3 +20,8 @@ export const GRANT_MILESTONES: GrantMilestone[] = [
   { name: "Phase One", amount: 1249.9, deadline: "2026-11-29" },
   { name: "Phase Two", amount: 1249.91, deadline: "2027-02-27" },
 ];
+
+// Assumption: no separate project-completion date has been given, so
+// this is set to the final tranche's deadline. Update if the grant
+// agreement specifies a distinct overall project end date.
+export const PROJECT_DEADLINE = "2027-02-27";

@@ -42,6 +42,7 @@ export function ViewerSummary({ entries }: { entries: Entry[] }) {
         <MarkPaidControl
           label={`Mark all ${unpaidExpenses.length} as paid`}
           buttonClassName="rounded bg-brass px-3 py-2 text-sm font-medium text-ink-dark hover:opacity-90"
+          confirmationMessage={`Mark ${unpaidExpenses.length} receipts totaling ${gbp(outstandingToPay)} as paid without reviewing them individually?`}
           onConfirm={markAllPaid}
         />
       )}

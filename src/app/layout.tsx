@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Badminton Club Ledger",
+  title: "Badminton Club",
   description: "Grant-funded badminton club income & expense tracker",
 };
 

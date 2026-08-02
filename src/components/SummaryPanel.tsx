@@ -8,29 +8,32 @@ function gbp(n: number) {
 export function SummaryPanel({ entries }: { entries: Entry[] }) {
   const { totalReceived, totalSpent, remainingToSpend } = computeSummary(entries);
 
-  const rows: Array<[string, number, boolean?]> = [
+  const secondaryStats: Array<[string, number]> = [
     ["Total Received", totalReceived],
     ["Total Spent", totalSpent],
     ["Grant Awarded", GRANT_AWARDED],
     ["Compost League Fee (3%)", COMPOST_LEAGUE_FEE],
     ["Available Budget", AVAILABLE_BUDGET],
-    ["Remaining to Spend", remainingToSpend, true],
   ];
 
   return (
     <div className="torn-edge bg-paper-light p-5 shadow mb-6">
       <h2 className="font-serif text-lg text-ink mb-3">Summary</h2>
-      <dl className="grid grid-cols-2 gap-y-2 text-sm">
-        {rows.map(([label, value, emphasize]) => (
-          <div key={label} className="contents">
-            <dt className={emphasize ? "font-medium text-ink" : "text-ink-muted"}>{label}</dt>
-            <dd
-              className={`amount text-right ${emphasize ? "font-semibold text-ink" : "text-ink"} ${
-                value < 0 ? "text-red-700" : ""
-              }`}
-            >
-              {gbp(value)}
-            </dd>
+
+      <div className="mb-4">
+        <p className="text-xs uppercase tracking-wide text-ink-muted">Remaining to Spend</p>
+        <p
+          className={`amount text-4xl font-semibold ${remainingToSpend < 0 ? "text-red-700" : "text-ink"}`}
+        >
+          {gbp(remainingToSpend)}
+        </p>
+      </div>
+
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-2 border-t border-brass/20 pt-3 text-xs sm:grid-cols-3">
+        {secondaryStats.map(([label, value]) => (
+          <div key={label}>
+            <dt className="text-ink-muted">{label}</dt>
+            <dd className={`amount ${value < 0 ? "text-red-700" : "text-ink"}`}>{gbp(value)}</dd>
           </div>
         ))}
       </dl>

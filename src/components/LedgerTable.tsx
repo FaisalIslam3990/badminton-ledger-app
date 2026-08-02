@@ -7,6 +7,7 @@ import type { Role } from "@/lib/roles";
 import { PRESET_CATEGORIES } from "@/lib/categories";
 import { todayLocalISODate, formatDateUK, formatDateTimeUK } from "@/lib/date";
 import { MarkPaidControl } from "./MarkPaidControl";
+import { ReceiptThumb } from "./ReceiptThumb";
 
 type Row = Entry & { receiptSignedUrl: string | null };
 
@@ -16,9 +17,8 @@ function gbp(n: number) {
   return n.toLocaleString("en-GB", { style: "currency", currency: "GBP" });
 }
 
-function receiptLabel(entry: Row) {
-  const ext = entry.receipt_file_url?.split(".").pop()?.toUpperCase();
-  return ext && ext.length <= 4 ? ext : "FILE";
+function isPdfReceipt(entry: Row) {
+  return (entry.receipt_file_url ?? "").toLowerCase().endsWith(".pdf");
 }
 
 // Whole-row/card tint reflecting payment status: yellow while sent and
@@ -28,6 +28,17 @@ function statusBgClass(entry: Row) {
   if (entry.received || entry.type === "income") return "bg-income";
   if (entry.paid) return "bg-pending";
   return "";
+}
+
+function Badge({ children, tone }: { children: React.ReactNode; tone: "unpaid" | "pending" | "received" }) {
+  const toneClass = {
+    unpaid: "border border-red-300 text-red-700",
+    pending: "bg-pending text-pending-ink",
+    received: "bg-income text-income-ink",
+  }[tone];
+  return (
+    <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${toneClass}`}>{children}</span>
+  );
 }
 
 export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
@@ -50,7 +61,13 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
   }
 
   const emptyMessage =
-    filter === "unpaid" ? "Nothing outstanding." : filter === "paid" ? "Nothing paid yet." : "No entries yet.";
+    filter === "unpaid"
+      ? role === "viewer"
+        ? "You're all caught up — nothing outstanding."
+        : "Nothing outstanding."
+      : filter === "paid"
+        ? "Nothing paid yet."
+        : "No entries yet.";
 
   return (
     <div className="torn-edge bg-paper-light shadow">
@@ -130,15 +147,12 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
                   <td className="amount px-3 py-2 text-right whitespace-nowrap">{gbp(entry.amount)}</td>
                   <td className="px-3 py-2">
                     {entry.receiptSignedUrl ? (
-                      <a
-                        href={entry.receiptSignedUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title={entry.receipt_file_name ?? "Receipt"}
-                        className="flex h-10 w-10 items-center justify-center rounded border border-brass/30 bg-white text-[10px] font-medium text-ink-muted"
-                      >
-                        {receiptLabel(entry)}
-                      </a>
+                      <ReceiptThumb
+                        signedUrl={entry.receiptSignedUrl}
+                        isPdf={isPdfReceipt(entry)}
+                        name={entry.receipt_file_name ?? "Receipt"}
+                        size="h-10 w-10"
+                      />
                     ) : (
                       "—"
                     )}
@@ -194,40 +208,38 @@ function EntryCard({
 }) {
   return (
     <div className={`p-4 ${statusBgClass(entry)}`}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs text-ink-muted">
-            {entry.date}
-            {entry.category ? ` · ${entry.category}` : ""}
-          </p>
-          <p className="text-ink">{entry.note ?? "—"}</p>
-        </div>
-        <p className="amount shrink-0 font-medium text-ink">{gbp(entry.amount)}</p>
+      {/* Compact header: date · category, plus the status badge so the
+          state is visible without scanning the whole card. */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="truncate text-xs text-ink-muted">
+          {entry.date}
+          {entry.category ? ` · ${entry.category}` : ""}
+        </span>
+        <StatusBadge entry={entry} />
       </div>
+
+      <p className="mt-1 text-ink">{entry.note ?? "—"}</p>
+      <p className="amount mt-1 text-xl font-semibold text-ink">{gbp(entry.amount)}</p>
 
       <div className="mt-3 flex items-center justify-between gap-3">
         {entry.receiptSignedUrl ? (
-          <a
-            href={entry.receiptSignedUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            title={entry.receipt_file_name ?? "Receipt"}
-            className="flex h-11 w-11 items-center justify-center rounded border border-brass/30 bg-white text-[10px] font-medium text-ink-muted"
-          >
-            {receiptLabel(entry)}
-          </a>
+          <ReceiptThumb
+            signedUrl={entry.receiptSignedUrl}
+            isPdf={isPdfReceipt(entry)}
+            name={entry.receipt_file_name ?? "Receipt"}
+          />
         ) : (
           <span className="text-xs text-ink-muted">No receipt</span>
         )}
-        <StatusCell entry={entry} role={role} onChanged={onChanged} />
+        <StatusActions entry={entry} role={role} onChanged={onChanged} />
       </div>
 
       {role === "admin" && (
         <div className="mt-3 flex gap-4 text-sm">
-          <button onClick={onEdit} className="text-brass">
+          <button onClick={onEdit} className="min-h-11 text-brass">
             Edit
           </button>
-          <button onClick={onDelete} className="text-red-700">
+          <button onClick={onDelete} className="min-h-11 text-red-700">
             Delete
           </button>
         </div>
@@ -236,11 +248,19 @@ function EntryCard({
   );
 }
 
+// Just the pill — used in the mobile card header and reused inside
+// StatusCell for the desktop table.
+function StatusBadge({ entry }: { entry: Row }) {
+  if (entry.received) return <Badge tone="received">Received</Badge>;
+  if (entry.paid) return <Badge tone="pending">Awaiting confirmation</Badge>;
+  return <Badge tone="unpaid">Unpaid</Badge>;
+}
+
 // Two-step settlement, split cleanly by whose job it is: she marks a
 // claim sent (date + optional reference); only he can confirm it landed.
 // Once received, the row is locked — neither the UI here nor the DB
 // trigger let a viewer touch it again.
-function StatusCell({ entry, role, onChanged }: { entry: Row; role: Role; onChanged: () => void }) {
+function StatusActions({ entry, role, onChanged }: { entry: Row; role: Role; onChanged: () => void }) {
   async function patch(body: Record<string, unknown>) {
     await fetch(`/api/entries/${entry.id}`, {
       method: "PATCH",
@@ -271,14 +291,12 @@ function StatusCell({ entry, role, onChanged }: { entry: Row; role: Role; onChan
   if (entry.received) {
     return (
       <div>
-        <p className="text-xs font-medium text-income-ink">
-          Received on {entry.received_at ? formatDateUK(entry.received_at) : ""}
-        </p>
+        <p className="text-xs text-ink-muted">{entry.received_at ? formatDateUK(entry.received_at) : ""}</p>
         {entry.received_marked_at && (
-          <p className="mt-1 text-[10px] text-ink-muted">confirmed {formatDateTimeUK(entry.received_marked_at)}</p>
+          <p className="text-[10px] text-ink-muted">confirmed {formatDateTimeUK(entry.received_marked_at)}</p>
         )}
         {role === "admin" && (
-          <button onClick={undoReceived} className="mt-0.5 text-[10px] text-ink-muted underline">
+          <button onClick={undoReceived} className="mt-0.5 min-h-6 text-[10px] text-ink-muted underline">
             Undo
           </button>
         )}
@@ -289,23 +307,26 @@ function StatusCell({ entry, role, onChanged }: { entry: Row; role: Role; onChan
   if (entry.paid) {
     return (
       <div>
-        <p className="text-xs font-medium text-pending-ink">
-          Sent on {entry.paid_at ? formatDateUK(entry.paid_at) : ""}
+        <p className="text-xs text-ink-muted">
+          {role === "viewer" ? "Paid" : "Sent"} {entry.paid_at ? `on ${formatDateUK(entry.paid_at)}` : ""}
+          {role === "viewer" && " — awaiting confirmation"}
         </p>
-        {entry.payment_reference && <p className="mt-1 text-[10px] text-ink-muted">Ref: {entry.payment_reference}</p>}
-        {entry.paid_marked_at && (
-          <p className="mt-1 text-[10px] text-ink-muted">marked {formatDateTimeUK(entry.paid_marked_at)}</p>
+        {role === "admin" && entry.payment_reference && (
+          <p className="text-[10px] text-ink-muted">Ref: {entry.payment_reference}</p>
         )}
-        <div className="mt-1 flex flex-wrap items-center gap-2">
+        {entry.paid_marked_at && (
+          <p className="mb-1 text-[10px] text-ink-muted">marked {formatDateTimeUK(entry.paid_marked_at)}</p>
+        )}
+        <div className="mt-1 flex flex-wrap items-center gap-3">
           {role === "admin" && (
             <button
               onClick={confirmReceived}
-              className="rounded border border-brass/40 px-2 py-1 text-xs text-ink hover:bg-white"
+              className="min-h-9 rounded border border-brass/40 px-2 py-1 text-xs text-ink hover:bg-white"
             >
               Confirm Received
             </button>
           )}
-          <button onClick={undoSent} className="text-xs text-brass underline">
+          <button onClick={undoSent} className="min-h-6 text-xs text-brass underline">
             Undo
           </button>
         </div>
@@ -317,7 +338,18 @@ function StatusCell({ entry, role, onChanged }: { entry: Row; role: Role; onChan
     return <MarkPaidControl label="Mark Paid" onConfirm={markSent} />;
   }
 
-  return <span className="text-xs text-ink-muted">Unpaid</span>;
+  return null;
+}
+
+// Desktop table cell: badge + actions stacked together (there's no
+// separate compact header line to split them across, unlike the card).
+function StatusCell({ entry, role, onChanged }: { entry: Row; role: Role; onChanged: () => void }) {
+  return (
+    <div className="space-y-1">
+      <StatusBadge entry={entry} />
+      <StatusActions entry={entry} role={role} onChanged={onChanged} />
+    </div>
+  );
 }
 
 function EditCard({
