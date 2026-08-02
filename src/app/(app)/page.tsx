@@ -1,9 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentRole } from "@/lib/roles";
 import { SummaryPanel } from "@/components/SummaryPanel";
+import { GrantTimeline } from "@/components/GrantTimeline";
 import { LedgerTable } from "@/components/LedgerTable";
 import { ExportCsvButton } from "@/components/ExportCsvButton";
-import type { Entry } from "@/lib/summary";
+import { computeSummary, type Entry } from "@/lib/summary";
 import Link from "next/link";
 
 export default async function LedgerPage() {
@@ -40,9 +41,12 @@ export default async function LedgerPage() {
     );
   }
 
+  const { totalSpent } = computeSummary(rows);
+
   return (
     <div>
       <SummaryPanel entries={rows} />
+      <GrantTimeline totalSpent={totalSpent} />
       <div className="mb-3 flex items-center justify-between">
         <h2 className="font-serif text-lg text-ink">Ledger</h2>
         <div className="flex items-center gap-4">
