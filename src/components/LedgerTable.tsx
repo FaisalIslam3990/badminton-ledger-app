@@ -265,9 +265,11 @@ function StatusCell({ entry, role, onChanged }: { entry: Row; role: Role; onChan
   if (entry.received) {
     return (
       <div>
-        <p className="text-xs text-income-ink">Received {entry.received_at ? formatDateUK(entry.received_at) : ""}</p>
+        <span className="inline-block rounded bg-income px-2 py-1 text-xs font-medium text-income-ink">
+          Received on {entry.received_at ? formatDateUK(entry.received_at) : ""}
+        </span>
         {entry.received_marked_at && (
-          <p className="text-[10px] text-ink-muted">confirmed {formatDateTimeUK(entry.received_marked_at)}</p>
+          <p className="mt-1 text-[10px] text-ink-muted">confirmed {formatDateTimeUK(entry.received_marked_at)}</p>
         )}
         {role === "admin" && (
           <button onClick={undoReceived} className="mt-0.5 text-[10px] text-ink-muted underline">
@@ -279,36 +281,28 @@ function StatusCell({ entry, role, onChanged }: { entry: Row; role: Role; onChan
   }
 
   if (entry.paid) {
-    if (role === "admin") {
-      return (
-        <div>
-          <p className="text-xs text-ink-muted">
-            Sent {entry.paid_at ? formatDateUK(entry.paid_at) : ""}
-            {entry.payment_reference ? ` · ${entry.payment_reference}` : ""}
-          </p>
-          {entry.paid_marked_at && (
-            <p className="text-[10px] text-ink-muted mb-1">marked {formatDateTimeUK(entry.paid_marked_at)}</p>
-          )}
-          <button
-            onClick={confirmReceived}
-            className="rounded border border-brass/40 px-2 py-1 text-xs text-ink hover:bg-white"
-          >
-            Confirm Received
-          </button>
-        </div>
-      );
-    }
     return (
       <div>
-        <p className="text-xs text-ink-muted">
-          Sent {entry.paid_at ? formatDateUK(entry.paid_at) : ""} — awaiting confirmation
-        </p>
+        <span className="inline-block rounded bg-pending px-2 py-1 text-xs font-medium text-pending-ink">
+          Sent on {entry.paid_at ? formatDateUK(entry.paid_at) : ""}
+        </span>
+        {entry.payment_reference && <p className="mt-1 text-[10px] text-ink-muted">Ref: {entry.payment_reference}</p>}
         {entry.paid_marked_at && (
-          <p className="text-[10px] text-ink-muted mb-1">marked {formatDateTimeUK(entry.paid_marked_at)}</p>
+          <p className="mt-1 text-[10px] text-ink-muted">marked {formatDateTimeUK(entry.paid_marked_at)}</p>
         )}
-        <button onClick={undoSent} className="text-xs text-brass underline">
-          Undo
-        </button>
+        <div className="mt-1 flex flex-wrap items-center gap-2">
+          {role === "admin" && (
+            <button
+              onClick={confirmReceived}
+              className="rounded border border-brass/40 px-2 py-1 text-xs text-ink hover:bg-white"
+            >
+              Confirm Received
+            </button>
+          )}
+          <button onClick={undoSent} className="text-xs text-brass underline">
+            Undo
+          </button>
+        </div>
       </div>
     );
   }
