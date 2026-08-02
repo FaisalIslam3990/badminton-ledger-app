@@ -7,12 +7,10 @@ export default function LoginPage() {
   const [mode, setMode] = useState<"magic" | "password">("password");
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-paper px-4">
-      <div className="w-full max-w-sm torn-edge bg-paper-light p-8 shadow-lg">
-        <h1 className="font-serif text-2xl text-ink mb-1">
-          Badminton Club
-        </h1>
-        <p className="text-ink-muted text-sm mb-4">
+    <main className="flex min-h-screen items-center justify-center bg-bg px-4">
+      <div className="card w-full max-w-sm p-8">
+        <h1 className="mb-1 text-2xl font-bold text-ink">Badminton Club</h1>
+        <p className="mb-4 text-sm text-ink-muted">
           {mode === "magic"
             ? "Sign in with a magic link — no password needed."
             : "Sign in with your username (or email) and password."}
@@ -23,7 +21,7 @@ export default function LoginPage() {
         <button
           type="button"
           onClick={() => setMode(mode === "magic" ? "password" : "magic")}
-          className="mt-4 text-xs text-ink-muted hover:text-ink underline"
+          className="mt-4 text-xs text-ink-muted underline hover:text-ink"
         >
           {mode === "magic" ? "Use a password instead" : "Use a magic link instead"}
         </button>
@@ -39,7 +37,7 @@ function MagicLinkForm() {
   });
 
   if (state.sent) {
-    return <p className="text-ink text-sm">Check your email for a sign-in link.</p>;
+    return <p className="text-sm text-ink">Check your email for a sign-in link.</p>;
   }
 
   return (
@@ -49,13 +47,13 @@ function MagicLinkForm() {
         name="email"
         required
         placeholder="you@example.com"
-        className="w-full rounded border border-brass/40 bg-white px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-brass"
+        className="w-full rounded-lg border border-border bg-white px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-primary"
       />
-      {state.error && <p className="text-sm text-red-700">{state.error}</p>}
+      {state.error && <p className="text-sm text-unpaid-ink">{state.error}</p>}
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded bg-brass px-4 py-2 font-medium text-ink-dark disabled:opacity-60"
+        className="w-full rounded-lg bg-primary px-4 py-2 font-medium text-primary-ink hover:bg-primary-dark disabled:opacity-60"
       >
         {pending ? "Sending…" : "Send magic link"}
       </button>
@@ -77,20 +75,20 @@ function PasswordForm() {
         placeholder="Username or email"
         autoCapitalize="off"
         autoCorrect="off"
-        className="w-full rounded border border-brass/40 bg-white px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-brass"
+        className="w-full rounded-lg border border-border bg-white px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-primary"
       />
       <input
         type="password"
         name="password"
         required
         placeholder="Password"
-        className="w-full rounded border border-brass/40 bg-white px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-brass"
+        className="w-full rounded-lg border border-border bg-white px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-primary"
       />
-      {state.error && <p className="text-sm text-red-700">{state.error}</p>}
+      {state.error && <p className="text-sm text-unpaid-ink">{state.error}</p>}
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded bg-brass px-4 py-2 font-medium text-ink-dark disabled:opacity-60"
+        className="w-full rounded-lg bg-primary px-4 py-2 font-medium text-primary-ink hover:bg-primary-dark disabled:opacity-60"
       >
         {pending ? "Signing in…" : "Sign in"}
       </button>

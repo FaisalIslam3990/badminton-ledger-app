@@ -83,7 +83,7 @@ export function AddEntryForm() {
   }
 
   return (
-    <div className="torn-edge bg-paper-light p-6 shadow space-y-4">
+    <div className="card space-y-4 p-6">
       {!file && (
         <div className="space-y-3">
           <p className="text-sm text-ink-muted">Photograph or upload the receipt.</p>
@@ -93,18 +93,18 @@ export function AddEntryForm() {
             accept="image/*,application/pdf"
             capture="environment"
             onChange={handleFileChange}
-            className="w-full rounded border border-brass/40 bg-white px-3 py-2"
+            className="w-full rounded-lg border border-border bg-white px-3 py-2"
           />
         </div>
       )}
 
       {previewUrl && (
-        <img src={previewUrl} alt="Receipt preview" className="max-h-64 w-full rounded object-contain border border-brass/30" />
+        <img src={previewUrl} alt="Receipt preview" className="max-h-64 w-full rounded-lg object-contain border border-border" />
       )}
       {file?.type === "application/pdf" && <p className="text-sm text-ink-muted">PDF attached: {file.name}</p>}
 
       {extracting && <p className="text-sm text-ink-muted">Reading receipt…</p>}
-      {extractError && <p className="text-sm text-amber-800">{extractError}</p>}
+      {extractError && <p className="text-sm text-pending-ink">{extractError}</p>}
 
       {fields && (
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -115,7 +115,7 @@ export function AddEntryForm() {
               value={fields.date}
               onChange={(e) => setFields({ ...fields, date: e.target.value })}
               required
-              className="w-full rounded border border-brass/40 bg-white px-3 py-2"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2"
             />
           </div>
           <div>
@@ -124,7 +124,7 @@ export function AddEntryForm() {
               type="text"
               value={fields.vendor}
               onChange={(e) => setFields({ ...fields, vendor: e.target.value })}
-              className="w-full rounded border border-brass/40 bg-white px-3 py-2"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2"
             />
           </div>
           <div>
@@ -137,7 +137,7 @@ export function AddEntryForm() {
               value={fields.amount}
               onChange={(e) => setFields({ ...fields, amount: Number(e.target.value) })}
               required
-              className="amount w-full rounded border border-brass/40 bg-white px-3 py-2"
+              className="amount w-full rounded-lg border border-border bg-white px-3 py-2"
             />
           </div>
           <div>
@@ -147,7 +147,7 @@ export function AddEntryForm() {
               list="category-options"
               value={fields.category}
               onChange={(e) => setFields({ ...fields, category: e.target.value })}
-              className="w-full rounded border border-brass/40 bg-white px-3 py-2"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2"
             />
             <datalist id="category-options">
               {PRESET_CATEGORIES.map((c) => (
@@ -161,11 +161,11 @@ export function AddEntryForm() {
               type="text"
               value={fields.note}
               onChange={(e) => setFields({ ...fields, note: e.target.value })}
-              className="w-full rounded border border-brass/40 bg-white px-3 py-2"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2"
             />
           </div>
 
-          {saveError && <p className="text-sm text-red-700">{saveError}</p>}
+          {saveError && <p className="text-sm text-unpaid-ink">{saveError}</p>}
 
           <div className="flex gap-3">
             <button
@@ -176,14 +176,14 @@ export function AddEntryForm() {
                 setFields(null);
                 if (fileInputRef.current) fileInputRef.current.value = "";
               }}
-              className="flex-1 rounded border border-brass/40 px-4 py-2 text-ink"
+              className="flex-1 rounded-lg border border-border px-4 py-2 text-ink"
             >
               Retake
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 rounded bg-brass px-4 py-2 font-medium text-ink-dark disabled:opacity-60"
+              className="flex-1 rounded-lg bg-primary px-4 py-2 font-medium text-white hover:bg-primary-dark disabled:opacity-60"
             >
               {saving ? "Saving…" : "Save expense"}
             </button>

@@ -7,3 +7,13 @@ export const PRESET_CATEGORIES = [
   "Basic DBS Checks",
   "Other",
 ] as const;
+
+export function categoryEmoji(category: string | null): string {
+  if (!category) return "📌";
+  const c = category.toLowerCase();
+  if (c.startsWith("court hire")) return "🏸";
+  if (c.startsWith("equipment")) return "🎯";
+  if (c.startsWith("public liability")) return "🛡️";
+  if (c.startsWith("basic dbs") || c.startsWith("dbs")) return "🪪";
+  return "📌";
+}

@@ -37,9 +37,9 @@ export function GrantTimeline() {
   const nextIndex = rows.findIndex((m) => m.status !== "received");
 
   return (
-    <div className="torn-edge bg-paper-light p-5 shadow mb-6">
-      <h2 className="font-serif text-lg text-ink mb-3">Grant Payment Schedule</h2>
-      <div>
+    <div className="card mb-8 p-6">
+      <h2 className="mb-4 text-lg font-semibold text-ink">Grant Payment Schedule</h2>
+      <div className="space-y-1">
         {rows.map((m, i) => {
           const received = m.status === "received";
           const isNext = i === nextIndex;
@@ -48,13 +48,13 @@ export function GrantTimeline() {
           return (
             <div
               key={m.name}
-              className={`flex items-center justify-between gap-3 rounded px-2 py-2 ${
-                isNext ? "bg-brass/10" : ""
+              className={`flex items-center justify-between gap-3 rounded-lg px-3 py-3 ${
+                isNext ? "bg-primary/5" : ""
               }`}
             >
               <div className="min-w-0">
-                <p className={`text-sm ${received ? "text-ink-muted" : "text-ink"}`}>
-                  {received && "✓ "}
+                <p className={`text-sm ${received ? "text-ink-muted" : "font-medium text-ink"}`}>
+                  {received && <span className="text-received-ink">✓ </span>}
                   {m.name}
                   {received && <span className="text-ink-muted"> · received</span>}
                 </p>
@@ -63,7 +63,7 @@ export function GrantTimeline() {
                     <span>{formatDate(m.deadline)}</span>
                     {isNext &&
                       (overdue ? (
-                        <span className="inline-block rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-medium text-red-700">
+                        <span className="inline-block rounded-full bg-unpaid px-2 py-0.5 text-[10px] font-medium text-unpaid-ink">
                           Overdue
                         </span>
                       ) : (
@@ -81,7 +81,7 @@ export function GrantTimeline() {
           );
         })}
       </div>
-      <div className="mt-2 flex items-center justify-between border-t border-brass/20 pt-2 text-xs text-ink-muted">
+      <div className="mt-3 flex items-center justify-between border-t border-border pt-3 text-xs text-ink-muted">
         <span>Project deadline</span>
         <span>
           {formatDate(PROJECT_DEADLINE)}

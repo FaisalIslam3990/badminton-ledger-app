@@ -28,7 +28,7 @@ export function ReceiptThumb({
         target="_blank"
         rel="noopener noreferrer"
         title={name}
-        className={`flex ${size} items-center justify-center rounded border border-brass/30 bg-white text-[10px] font-medium text-ink-muted`}
+        className={`flex ${size} items-center justify-center rounded border border-border bg-white text-[10px] font-medium text-ink-muted`}
       >
         PDF
       </a>
@@ -42,7 +42,7 @@ export function ReceiptThumb({
         <img
           src={signedUrl}
           alt={name}
-          className={`${size} rounded border border-brass/30 object-cover`}
+          className={`${size} rounded border border-border object-cover`}
         />
       </button>
       {open &&

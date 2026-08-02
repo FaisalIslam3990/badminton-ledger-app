@@ -36,11 +36,11 @@ export function MarkPaidControl({
       onClick={() => setOpen(false)}
     >
       <div
-        className="w-full max-w-xs rounded border border-brass/40 bg-white p-4 text-left shadow-xl"
+        className="card w-full max-w-xs p-5 text-left"
         onClick={(e) => e.stopPropagation()}
       >
         {confirmationMessage && (
-          <p className="mb-3 rounded bg-pending px-3 py-2 text-sm font-medium text-pending-ink">
+          <p className="mb-3 rounded-lg bg-pending px-3 py-2 text-sm font-medium text-pending-ink">
             {confirmationMessage}
           </p>
         )}
@@ -49,7 +49,7 @@ export function MarkPaidControl({
           type="date"
           value={paidAt}
           onChange={(e) => setPaidAt(e.target.value)}
-          className="mb-3 w-full rounded border border-brass/40 px-3 py-2 text-base"
+          className="mb-3 w-full rounded-lg border border-border px-3 py-2 text-base"
         />
         <label className="block text-sm text-ink-muted mb-1">Reference (optional)</label>
         <input
@@ -57,19 +57,19 @@ export function MarkPaidControl({
           value={reference}
           onChange={(e) => setReference(e.target.value)}
           placeholder="e.g. bank transfer ref"
-          className="mb-4 w-full rounded border border-brass/40 px-3 py-2 text-base"
+          className="mb-4 w-full rounded-lg border border-border px-3 py-2 text-base"
         />
         <div className="flex gap-2">
           <button
             onClick={confirm}
             disabled={saving}
-            className="flex-1 rounded bg-brass px-3 py-2 text-sm font-medium text-ink-dark disabled:opacity-60"
+            className="flex-1 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-60"
           >
             {saving ? "Saving…" : "Confirm"}
           </button>
           <button
             onClick={() => setOpen(false)}
-            className="flex-1 rounded border border-brass/40 px-3 py-2 text-sm text-ink"
+            className="flex-1 rounded-lg border border-border px-3 py-2 text-sm text-ink"
           >
             Cancel
           </button>
@@ -82,7 +82,7 @@ export function MarkPaidControl({
     <>
       <button
         onClick={() => setOpen(true)}
-        className={buttonClassName ?? "rounded border border-brass/40 px-2 py-1 text-xs text-ink hover:bg-white"}
+        className={buttonClassName ?? "rounded-lg border border-border px-2 py-1 text-xs text-ink hover:bg-bg"}
       >
         {label}
       </button>

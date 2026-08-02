@@ -5,38 +5,41 @@ function gbp(n: number) {
   return n.toLocaleString("en-GB", { style: "currency", currency: "GBP" });
 }
 
+function StatTile({ label, value, tone }: { label: string; value: number; tone: "received" | "dark" | "light" }) {
+  const toneClass = {
+    received: "bg-received text-received-ink",
+    dark: "bg-ink text-white",
+    light: "bg-bg text-ink",
+  }[tone];
+  return (
+    <div className={`rounded-xl p-3 ${toneClass}`}>
+      <p className="text-[10px] font-medium uppercase tracking-wide opacity-70">{label}</p>
+      <p className="amount mt-0.5 text-sm">{gbp(value)}</p>
+    </div>
+  );
+}
+
 export function SummaryPanel({ entries }: { entries: Entry[] }) {
   const { totalReceived, totalSpent, remainingToSpend } = computeSummary(entries);
 
-  const secondaryStats: Array<[string, number]> = [
-    ["Total Received", totalReceived],
-    ["Total Spent", totalSpent],
-    ["Grant Awarded", GRANT_AWARDED],
-    ["Compost League Fee (3%)", COMPOST_LEAGUE_FEE],
-    ["Available Budget", AVAILABLE_BUDGET],
-  ];
-
   return (
-    <div className="torn-edge bg-paper-light p-5 shadow mb-6">
-      <h2 className="font-serif text-lg text-ink mb-3">Summary</h2>
+    <div className="card mb-8 p-6">
+      <h2 className="mb-4 text-lg font-semibold text-ink">Summary</h2>
 
-      <div className="mb-4">
-        <p className="text-xs uppercase tracking-wide text-ink-muted">Remaining to Spend</p>
-        <p
-          className={`amount text-4xl font-semibold ${remainingToSpend < 0 ? "text-red-700" : "text-ink"}`}
-        >
+      <div className="rounded-xl bg-primary p-6 text-white">
+        <p className="text-xs font-medium uppercase tracking-wide text-white/80">Remaining to Spend</p>
+        <p className={`amount mt-1 text-4xl ${remainingToSpend < 0 ? "text-red-200" : ""}`}>
           {gbp(remainingToSpend)}
         </p>
       </div>
 
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-2 border-t border-brass/20 pt-3 text-xs sm:grid-cols-3">
-        {secondaryStats.map(([label, value]) => (
-          <div key={label}>
-            <dt className="text-ink-muted">{label}</dt>
-            <dd className={`amount ${value < 0 ? "text-red-700" : "text-ink"}`}>{gbp(value)}</dd>
-          </div>
-        ))}
-      </dl>
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
+        <StatTile label="Total Received" value={totalReceived} tone="received" />
+        <StatTile label="Total Spent" value={totalSpent} tone="dark" />
+        <StatTile label="Grant Awarded" value={GRANT_AWARDED} tone="light" />
+        <StatTile label="Compost Fee" value={COMPOST_LEAGUE_FEE} tone="light" />
+        <StatTile label="Available Budget" value={AVAILABLE_BUDGET} tone="light" />
+      </div>
     </div>
   );
 }

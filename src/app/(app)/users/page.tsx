@@ -19,21 +19,21 @@ export default async function UsersPage() {
 
   return (
     <div className="max-w-lg">
-      <h1 className="font-serif text-2xl text-ink mb-4">Users</h1>
+      <h1 className="mb-4 text-2xl font-bold text-ink">Users</h1>
 
-      <div className="torn-edge bg-paper-light shadow mb-6">
+      <div className="card mb-8 overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-brass/30 text-left text-ink-muted">
-              <th className="px-3 py-2 font-normal">Username / Email</th>
-              <th className="px-3 py-2 font-normal">Role</th>
-              <th className="px-3 py-2 font-normal"></th>
+            <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wide text-ink-muted">
+              <th className="px-4 py-3 font-medium">Username / Email</th>
+              <th className="px-4 py-3 font-medium">Role</th>
+              <th className="px-4 py-3 font-medium"></th>
             </tr>
           </thead>
           <tbody>
             {(users ?? []).map((u) => (
-              <tr key={u.id} className="border-b border-brass/10">
-                <td className="px-3 py-2">
+              <tr key={u.id} className="border-b border-border">
+                <td className="px-4 py-3 text-ink">
                   {isUsernameAccount(u.email) ? (
                     <>
                       {displayIdentity(u.email)}{" "}
@@ -43,11 +43,11 @@ export default async function UsersPage() {
                     u.email
                   )}
                 </td>
-                <td className="px-3 py-2 capitalize">{u.role}</td>
-                <td className="px-3 py-2 text-right">
+                <td className="px-4 py-3 capitalize text-ink">{u.role}</td>
+                <td className="px-4 py-3 text-right">
                   {u.email !== myEmail && (
                     <form action={removeUser.bind(null, u.id)}>
-                      <button type="submit" className="text-red-700 hover:underline">
+                      <button type="submit" className="text-unpaid-ink hover:underline">
                         Remove
                       </button>
                     </form>
@@ -59,8 +59,8 @@ export default async function UsersPage() {
         </table>
       </div>
 
-      <div className="torn-edge bg-paper-light p-6 shadow">
-        <h2 className="font-medium text-ink mb-1">Add a user</h2>
+      <div className="card p-6">
+        <h2 className="mb-1 font-semibold text-ink">Add a user</h2>
         <p className="text-ink-muted text-sm mb-4">
           Set a username and password yourself and hand them over — no email
           needed, and usernames aren&apos;t case-sensitive.

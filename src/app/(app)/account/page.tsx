@@ -8,11 +8,11 @@ export default async function AccountPage() {
 
   return (
     <div className="max-w-sm">
-      <h1 className="font-serif text-2xl text-ink mb-1">Account</h1>
+      <h1 className="mb-1 text-2xl font-bold text-ink">Account</h1>
       <p className="text-ink-muted text-sm mb-4">{email ? displayIdentity(email) : "—"}</p>
 
-      <div className="torn-edge bg-paper-light p-6 shadow">
-        <h2 className="font-medium text-ink mb-1">
+      <div className="card p-6">
+        <h2 className="mb-1 font-semibold text-ink">
           {usernameAccount ? "Change your password" : "Set a password"}
         </h2>
         <p className="text-ink-muted text-sm mb-4">

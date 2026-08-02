@@ -49,7 +49,7 @@ export function ExportCsvButton({ entries }: { entries: Entry[] }) {
   }
 
   return (
-    <button onClick={download} className="text-sm text-brass hover:underline">
+    <button onClick={download} className="text-sm font-medium text-primary hover:underline">
       Export CSV backup
     </button>
   );

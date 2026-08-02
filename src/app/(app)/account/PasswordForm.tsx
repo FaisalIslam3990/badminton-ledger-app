@@ -17,7 +17,7 @@ export function PasswordForm() {
         required
         minLength={8}
         placeholder="New password (min 8 characters)"
-        className="w-full rounded border border-brass/40 bg-white px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-brass"
+        className="w-full rounded-lg border border-border bg-white px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-primary"
       />
       <input
         type="password"
@@ -25,14 +25,14 @@ export function PasswordForm() {
         required
         minLength={8}
         placeholder="Confirm password"
-        className="w-full rounded border border-brass/40 bg-white px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-brass"
+        className="w-full rounded-lg border border-border bg-white px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-primary"
       />
-      {state.error && <p className="text-sm text-red-700">{state.error}</p>}
-      {state.success && <p className="text-sm text-income-ink">Password set.</p>}
+      {state.error && <p className="text-sm text-unpaid-ink">{state.error}</p>}
+      {state.success && <p className="text-sm text-received-ink">Password set.</p>}
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded bg-brass px-4 py-2 font-medium text-ink-dark disabled:opacity-60"
+        className="w-full rounded-lg bg-primary px-4 py-2 font-medium text-white hover:bg-primary-dark disabled:opacity-60"
       >
         {pending ? "Saving…" : "Save password"}
       </button>

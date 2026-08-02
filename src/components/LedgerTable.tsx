@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Entry } from "@/lib/summary";
 import type { Role } from "@/lib/roles";
-import { PRESET_CATEGORIES } from "@/lib/categories";
+import { PRESET_CATEGORIES, categoryEmoji } from "@/lib/categories";
 import { todayLocalISODate, formatDateUK, formatDateTimeUK } from "@/lib/date";
 import { MarkPaidControl } from "./MarkPaidControl";
 import { ReceiptThumb } from "./ReceiptThumb";
@@ -25,19 +25,34 @@ function isPdfReceipt(entry: Row) {
 // awaiting confirmation, green once received. `type === "income"` only
 // matters for legacy rows predating the reimbursement-only model.
 function statusBgClass(entry: Row) {
-  if (entry.received || entry.type === "income") return "bg-income";
-  if (entry.paid) return "bg-pending";
+  if (entry.received || entry.type === "income") return "bg-received/40";
+  if (entry.paid) return "bg-pending/50";
   return "";
 }
 
 function Badge({ children, tone }: { children: React.ReactNode; tone: "unpaid" | "pending" | "received" }) {
   const toneClass = {
-    unpaid: "border border-red-300 text-red-700",
+    unpaid: "bg-unpaid text-unpaid-ink",
     pending: "bg-pending text-pending-ink",
-    received: "bg-income text-income-ink",
+    received: "bg-received text-received-ink",
   }[tone];
+  const dot = { unpaid: "●", pending: "◐", received: "✓" }[tone];
   return (
-    <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${toneClass}`}>{children}</span>
+    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${toneClass}`}>
+      <span aria-hidden>{dot}</span>
+      {children}
+    </span>
+  );
+}
+
+function CategoryTag({ category }: { category: string | null }) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs">
+        {categoryEmoji(category)}
+      </span>
+      <span className="truncate">{category ?? "—"}</span>
+    </span>
   );
 }
 
@@ -54,30 +69,34 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
     return true;
   });
 
+  // Under the Unpaid filter every visible row is unpaid by definition —
+  // repeating that on each row is just noise.
+  const showUnpaidBadge = filter !== "unpaid";
+
   async function deleteEntry(id: string) {
     if (!confirm("Delete this entry? This can't be undone.")) return;
     await fetch(`/api/entries/${id}`, { method: "DELETE" });
     router.refresh();
   }
 
-  const emptyMessage =
-    filter === "unpaid"
-      ? role === "viewer"
-        ? "You're all caught up — nothing outstanding."
-        : "Nothing outstanding."
-      : filter === "paid"
-        ? "Nothing paid yet."
-        : "No entries yet.";
+  const emptyState =
+    filter === "unpaid" && role === "viewer"
+      ? { emoji: "✅", text: "You're all caught up — nothing outstanding." }
+      : filter === "unpaid"
+        ? { emoji: "📭", text: "Nothing outstanding." }
+        : filter === "paid"
+          ? { emoji: "📭", text: "Nothing paid yet." }
+          : { emoji: "📭", text: "No entries yet." };
 
   return (
-    <div className="torn-edge bg-paper-light shadow">
-      <div className="flex gap-1 border-b border-brass/20 px-3 py-2">
+    <div className="card">
+      <div className="flex gap-1 border-b border-border px-4 py-3">
         {(["unpaid", "all", "paid"] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`rounded px-3 py-2 text-xs capitalize ${
-              filter === f ? "bg-brass text-ink-dark" : "text-ink-muted hover:text-ink"
+            className={`rounded-lg px-3 py-2 text-xs font-medium capitalize ${
+              filter === f ? "bg-primary text-white" : "text-ink-muted hover:bg-bg"
             }`}
           >
             {f}
@@ -87,7 +106,7 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
 
       {/* Mobile: stacked cards. A table crammed into a phone width just
           forces horizontal scrolling and unreadable cells. */}
-      <div className="sm:hidden divide-y divide-brass/10">
+      <div className="sm:hidden divide-y divide-border">
         {visibleEntries.map((entry) =>
           editingId === entry.id ? (
             <EditCard
@@ -104,27 +123,33 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
               key={entry.id}
               entry={entry}
               role={role}
+              showUnpaidBadge={showUnpaidBadge}
               onEdit={() => setEditingId(entry.id)}
               onDelete={() => deleteEntry(entry.id)}
               onChanged={() => router.refresh()}
             />
           ),
         )}
-        {visibleEntries.length === 0 && <p className="px-4 py-6 text-center text-ink-muted">{emptyMessage}</p>}
+        {visibleEntries.length === 0 && (
+          <div className="px-4 py-10 text-center text-ink-muted">
+            <p className="mb-1 text-3xl">{emptyState.emoji}</p>
+            <p>{emptyState.text}</p>
+          </div>
+        )}
       </div>
 
       {/* Desktop / tablet: table. */}
       <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-brass/30 text-left text-ink-muted">
-              <th className="px-3 py-2 font-normal">Date</th>
-              <th className="px-3 py-2 font-normal">Category</th>
-              <th className="px-3 py-2 font-normal">Note</th>
-              <th className="px-3 py-2 font-normal text-right">Amount</th>
-              <th className="px-3 py-2 font-normal">Receipt</th>
-              <th className="px-3 py-2 font-normal">Status</th>
-              {role === "admin" && <th className="px-3 py-2 font-normal">Actions</th>}
+            <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wide text-ink-muted">
+              <th className="px-4 py-3 font-medium">Date</th>
+              <th className="px-4 py-3 font-medium">Category</th>
+              <th className="px-4 py-3 font-medium">Note</th>
+              <th className="px-4 py-3 text-right font-medium">Amount</th>
+              <th className="px-4 py-3 font-medium">Receipt</th>
+              <th className="px-4 py-3 font-medium">Status</th>
+              {role === "admin" && <th className="px-4 py-3 text-right font-medium">Actions</th>}
             </tr>
           </thead>
           <tbody>
@@ -140,12 +165,14 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
                   }}
                 />
               ) : (
-                <tr key={entry.id} className={`border-b border-brass/10 ${statusBgClass(entry)}`}>
-                  <td className="px-3 py-2 whitespace-nowrap">{entry.date}</td>
-                  <td className="px-3 py-2">{entry.category ?? "—"}</td>
-                  <td className="px-3 py-2">{entry.note ?? "—"}</td>
-                  <td className="amount px-3 py-2 text-right whitespace-nowrap">{gbp(entry.amount)}</td>
-                  <td className="px-3 py-2">
+                <tr key={entry.id} className={`border-b border-border ${statusBgClass(entry)}`}>
+                  <td className="whitespace-nowrap px-4 py-4 text-ink">{entry.date}</td>
+                  <td className="px-4 py-4 text-ink">
+                    <CategoryTag category={entry.category} />
+                  </td>
+                  <td className="px-4 py-4 text-ink-muted">{entry.note ?? "—"}</td>
+                  <td className="amount px-4 py-4 text-right text-ink">{gbp(entry.amount)}</td>
+                  <td className="px-4 py-4">
                     {entry.receiptSignedUrl ? (
                       <ReceiptThumb
                         signedUrl={entry.receiptSignedUrl}
@@ -154,23 +181,28 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
                         size="h-10 w-10"
                       />
                     ) : (
-                      "—"
+                      <span className="text-ink-muted">—</span>
                     )}
                   </td>
-                  <td className="px-3 py-2">
-                    <StatusCell entry={entry} role={role} onChanged={() => router.refresh()} />
+                  <td className="px-4 py-4">
+                    <StatusCell
+                      entry={entry}
+                      role={role}
+                      showUnpaidBadge={showUnpaidBadge}
+                      onChanged={() => router.refresh()}
+                    />
                   </td>
                   {role === "admin" && (
-                    <td className="px-3 py-2 whitespace-nowrap">
+                    <td className="whitespace-nowrap px-4 py-4 text-right">
                       <button
                         onClick={() => setEditingId(entry.id)}
-                        className="mr-3 text-brass hover:underline"
+                        className="mr-3 text-primary hover:underline"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => deleteEntry(entry.id)}
-                        className="text-red-700 hover:underline"
+                        className="text-unpaid-ink hover:underline"
                       >
                         Delete
                       </button>
@@ -181,8 +213,9 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
             )}
             {visibleEntries.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-3 py-6 text-center text-ink-muted">
-                  {emptyMessage}
+                <td colSpan={7} className="px-4 py-10 text-center text-ink-muted">
+                  <p className="mb-1 text-3xl">{emptyState.emoji}</p>
+                  <p>{emptyState.text}</p>
                 </td>
               </tr>
             )}
@@ -196,12 +229,14 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
 function EntryCard({
   entry,
   role,
+  showUnpaidBadge,
   onEdit,
   onDelete,
   onChanged,
 }: {
   entry: Row;
   role: Role;
+  showUnpaidBadge: boolean;
   onEdit: () => void;
   onDelete: () => void;
   onChanged: () => void;
@@ -211,15 +246,14 @@ function EntryCard({
       {/* Compact header: date · category, plus the status badge so the
           state is visible without scanning the whole card. */}
       <div className="flex items-center justify-between gap-2">
-        <span className="truncate text-xs text-ink-muted">
-          {entry.date}
-          {entry.category ? ` · ${entry.category}` : ""}
+        <span className="flex min-w-0 items-center gap-1.5 truncate text-xs text-ink-muted">
+          {entry.date} · <CategoryTag category={entry.category} />
         </span>
-        <StatusBadge entry={entry} />
+        <StatusBadge entry={entry} showUnpaidBadge={showUnpaidBadge} />
       </div>
 
-      <p className="mt-1 text-ink">{entry.note ?? "—"}</p>
-      <p className="amount mt-1 text-xl font-semibold text-ink">{gbp(entry.amount)}</p>
+      <p className="mt-2 text-ink">{entry.note ?? "—"}</p>
+      <p className="amount mt-1 text-xl text-ink">{gbp(entry.amount)}</p>
 
       <div className="mt-3 flex items-center justify-between gap-3">
         {entry.receiptSignedUrl ? (
@@ -236,10 +270,10 @@ function EntryCard({
 
       {role === "admin" && (
         <div className="mt-3 flex gap-4 text-sm">
-          <button onClick={onEdit} className="min-h-11 text-brass">
+          <button onClick={onEdit} className="min-h-11 text-primary">
             Edit
           </button>
-          <button onClick={onDelete} className="min-h-11 text-red-700">
+          <button onClick={onDelete} className="min-h-11 text-unpaid-ink">
             Delete
           </button>
         </div>
@@ -250,9 +284,10 @@ function EntryCard({
 
 // Just the pill — used in the mobile card header and reused inside
 // StatusCell for the desktop table.
-function StatusBadge({ entry }: { entry: Row }) {
+function StatusBadge({ entry, showUnpaidBadge }: { entry: Row; showUnpaidBadge: boolean }) {
   if (entry.received) return <Badge tone="received">Received</Badge>;
   if (entry.paid) return <Badge tone="pending">Awaiting confirmation</Badge>;
+  if (!showUnpaidBadge) return null;
   return <Badge tone="unpaid">Unpaid</Badge>;
 }
 
@@ -321,12 +356,12 @@ function StatusActions({ entry, role, onChanged }: { entry: Row; role: Role; onC
           {role === "admin" && (
             <button
               onClick={confirmReceived}
-              className="min-h-9 rounded border border-brass/40 px-2 py-1 text-xs text-ink hover:bg-white"
+              className="min-h-9 rounded-lg border border-border px-2 py-1 text-xs text-ink hover:bg-bg"
             >
               Confirm Received
             </button>
           )}
-          <button onClick={undoSent} className="min-h-6 text-xs text-brass underline">
+          <button onClick={undoSent} className="min-h-6 text-xs text-primary underline">
             Undo
           </button>
         </div>
@@ -335,7 +370,13 @@ function StatusActions({ entry, role, onChanged }: { entry: Row; role: Role; onC
   }
 
   if (role === "viewer") {
-    return <MarkPaidControl label="Mark Paid" onConfirm={markSent} />;
+    return (
+      <MarkPaidControl
+        label="Mark Paid"
+        buttonClassName="min-h-11 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white hover:bg-primary-dark"
+        onConfirm={markSent}
+      />
+    );
   }
 
   return null;
@@ -343,10 +384,20 @@ function StatusActions({ entry, role, onChanged }: { entry: Row; role: Role; onC
 
 // Desktop table cell: badge + actions stacked together (there's no
 // separate compact header line to split them across, unlike the card).
-function StatusCell({ entry, role, onChanged }: { entry: Row; role: Role; onChanged: () => void }) {
+function StatusCell({
+  entry,
+  role,
+  showUnpaidBadge,
+  onChanged,
+}: {
+  entry: Row;
+  role: Role;
+  showUnpaidBadge: boolean;
+  onChanged: () => void;
+}) {
   return (
-    <div className="space-y-1">
-      <StatusBadge entry={entry} />
+    <div className="space-y-1.5">
+      <StatusBadge entry={entry} showUnpaidBadge={showUnpaidBadge} />
       <StatusActions entry={entry} role={role} onChanged={onChanged} />
     </div>
   );
@@ -379,14 +430,14 @@ function EditCard({
   }
 
   return (
-    <div className="space-y-3 bg-white p-4">
+    <div className="space-y-3 bg-bg p-4">
       <div>
         <label className="block text-xs text-ink-muted mb-1">Date</label>
         <input
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="w-full rounded border border-brass/40 px-3 py-2"
+          className="w-full rounded-lg border border-border bg-white px-3 py-2"
         />
       </div>
       <div>
@@ -396,7 +447,7 @@ function EditCard({
           list="edit-category-options-mobile"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="w-full rounded border border-brass/40 px-3 py-2"
+          className="w-full rounded-lg border border-border bg-white px-3 py-2"
         />
         <datalist id="edit-category-options-mobile">
           {PRESET_CATEGORIES.map((c) => (
@@ -410,7 +461,7 @@ function EditCard({
           type="text"
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          className="w-full rounded border border-brass/40 px-3 py-2"
+          className="w-full rounded-lg border border-border bg-white px-3 py-2"
         />
       </div>
       <div>
@@ -420,18 +471,18 @@ function EditCard({
           step="0.01"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          className="amount w-full rounded border border-brass/40 px-3 py-2"
+          className="amount w-full rounded-lg border border-border bg-white px-3 py-2"
         />
       </div>
       <div className="flex gap-2 pt-1">
         <button
           onClick={save}
           disabled={saving}
-          className="flex-1 rounded bg-brass px-3 py-2 text-sm font-medium text-ink-dark disabled:opacity-60"
+          className="flex-1 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-60"
         >
           {saving ? "Saving…" : "Save"}
         </button>
-        <button onClick={onCancel} className="flex-1 rounded border border-brass/40 px-3 py-2 text-sm text-ink">
+        <button onClick={onCancel} className="flex-1 rounded-lg border border-border px-3 py-2 text-sm text-ink">
           Cancel
         </button>
       </div>
@@ -466,22 +517,22 @@ function EditRow({
   }
 
   return (
-    <tr className="border-b border-brass/10 bg-white">
-      <td className="px-3 py-2">
+    <tr className="border-b border-border bg-bg">
+      <td className="px-4 py-3">
         <input
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="w-full rounded border border-brass/40 px-2 py-1"
+          className="w-full rounded-lg border border-border bg-white px-2 py-1"
         />
       </td>
-      <td className="px-3 py-2">
+      <td className="px-4 py-3">
         <input
           type="text"
           list="edit-category-options"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="w-full rounded border border-brass/40 px-2 py-1"
+          className="w-full rounded-lg border border-border bg-white px-2 py-1"
         />
         <datalist id="edit-category-options">
           {PRESET_CATEGORIES.map((c) => (
@@ -489,27 +540,27 @@ function EditRow({
           ))}
         </datalist>
       </td>
-      <td className="px-3 py-2">
+      <td className="px-4 py-3">
         <input
           type="text"
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          className="w-full rounded border border-brass/40 px-2 py-1"
+          className="w-full rounded-lg border border-border bg-white px-2 py-1"
         />
       </td>
-      <td className="px-3 py-2">
+      <td className="px-4 py-3">
         <input
           type="number"
           step="0.01"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          className="amount w-full rounded border border-brass/40 px-2 py-1 text-right"
+          className="amount w-full rounded-lg border border-border bg-white px-2 py-1 text-right"
         />
       </td>
-      <td className="px-3 py-2"></td>
-      <td className="px-3 py-2"></td>
-      <td className="px-3 py-2 whitespace-nowrap">
-        <button onClick={save} disabled={saving} className="mr-3 text-brass hover:underline">
+      <td className="px-4 py-3"></td>
+      <td className="px-4 py-3"></td>
+      <td className="whitespace-nowrap px-4 py-3 text-right">
+        <button onClick={save} disabled={saving} className="mr-3 text-primary hover:underline">
           {saving ? "Saving…" : "Save"}
         </button>
         <button onClick={onCancel} className="text-ink-muted hover:underline">

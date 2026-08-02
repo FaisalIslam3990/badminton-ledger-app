@@ -22,7 +22,7 @@ export function AddUserForm() {
         placeholder="Username (e.g. caroline)"
         autoCapitalize="off"
         autoCorrect="off"
-        className="w-full rounded border border-brass/40 bg-white px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-brass"
+        className="w-full rounded-lg border border-border bg-white px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-primary"
       />
       <input
         type="text"
@@ -30,21 +30,21 @@ export function AddUserForm() {
         required
         minLength={8}
         placeholder="Password (min 8 characters)"
-        className="w-full rounded border border-brass/40 bg-white px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-brass"
+        className="w-full rounded-lg border border-border bg-white px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-primary"
       />
       <select
         name="role"
         defaultValue="viewer"
-        className="w-full rounded border border-brass/40 bg-white px-3 py-2 text-ink"
+        className="w-full rounded-lg border border-border bg-white px-3 py-2 text-ink"
       >
         <option value="viewer">Viewer</option>
         <option value="admin">Admin</option>
       </select>
-      {state.error && <p className="text-sm text-red-700">{state.error}</p>}
+      {state.error && <p className="text-sm text-unpaid-ink">{state.error}</p>}
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded bg-brass px-4 py-2 font-medium text-ink-dark disabled:opacity-60"
+        className="w-full rounded-lg bg-primary px-4 py-2 font-medium text-white hover:bg-primary-dark disabled:opacity-60"
       >
         {pending ? "Adding…" : "Add user"}
       </button>

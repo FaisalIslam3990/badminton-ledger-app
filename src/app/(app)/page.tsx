@@ -33,7 +33,7 @@ export default async function LedgerPage() {
 
   if (!role) {
     return (
-      <div className="torn-edge bg-paper-light p-6 shadow">
+      <div className="card p-6">
         <p className="text-ink">
           Your account isn&apos;t set up with access yet. Ask the admin to add your email to the{" "}
           <code>user_roles</code> table.
@@ -56,7 +56,7 @@ export default async function LedgerPage() {
           <SummaryPanel entries={rows} />
           <GrantTimeline />
           {pendingConfirmCount > 0 && (
-            <p className="text-sm text-amber-800 mb-3">
+            <p className="mb-4 rounded-lg bg-pending px-4 py-2 text-sm font-medium text-pending-ink">
               {pendingConfirmCount} payment{pendingConfirmCount === 1 ? "" : "s"} awaiting your confirmation
             </p>
           )}
@@ -64,12 +64,12 @@ export default async function LedgerPage() {
       ) : (
         <ViewerSummary entries={rows} />
       )}
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="font-serif text-lg text-ink">Ledger</h2>
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-ink">Ledger</h2>
         <div className="flex items-center gap-4">
           {role === "admin" && <ExportCsvButton entries={rows} />}
           {role === "admin" && (
-            <Link href="/add" className="text-sm text-brass hover:underline">
+            <Link href="/add" className="text-sm font-medium text-primary hover:underline">
               + Add Entry
             </Link>
           )}

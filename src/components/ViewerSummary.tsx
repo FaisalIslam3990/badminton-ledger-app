@@ -30,21 +30,26 @@ export function ViewerSummary({ entries }: { entries: Entry[] }) {
   }
 
   return (
-    <div className="torn-edge bg-paper-light p-5 shadow mb-6">
-      <h2 className="font-serif text-lg text-ink mb-1">Outstanding to Pay</h2>
-      <p className="amount text-3xl text-ink">{gbp(outstandingToPay)}</p>
-      <p className="text-sm text-ink-muted mt-1 mb-3">
-        {unpaidExpenses.length === 0
-          ? "Nothing outstanding"
-          : `${unpaidExpenses.length} unpaid item${unpaidExpenses.length === 1 ? "" : "s"}`}
-      </p>
+    <div className="card mb-8 p-6">
+      <h2 className="mb-4 text-lg font-semibold text-ink">Outstanding to Pay</h2>
+      <div className="rounded-xl bg-primary p-6 text-white">
+        <p className="text-xs font-medium uppercase tracking-wide text-white/80">Outstanding to Pay</p>
+        <p className="amount mt-1 text-4xl">{gbp(outstandingToPay)}</p>
+        <p className="mt-1 text-sm text-white/80">
+          {unpaidExpenses.length === 0
+            ? "Nothing outstanding"
+            : `${unpaidExpenses.length} unpaid item${unpaidExpenses.length === 1 ? "" : "s"}`}
+        </p>
+      </div>
       {unpaidExpenses.length > 1 && (
-        <MarkPaidControl
-          label={`Mark all ${unpaidExpenses.length} as paid`}
-          buttonClassName="rounded bg-brass px-3 py-2 text-sm font-medium text-ink-dark hover:opacity-90"
-          confirmationMessage={`Mark ${unpaidExpenses.length} receipts totaling ${gbp(outstandingToPay)} as paid without reviewing them individually?`}
-          onConfirm={markAllPaid}
-        />
+        <div className="mt-4">
+          <MarkPaidControl
+            label={`Mark all ${unpaidExpenses.length} as paid`}
+            buttonClassName="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark"
+            confirmationMessage={`Mark ${unpaidExpenses.length} receipts totaling ${gbp(outstandingToPay)} as paid without reviewing them individually?`}
+            onConfirm={markAllPaid}
+          />
+        </div>
       )}
     </div>
   );
