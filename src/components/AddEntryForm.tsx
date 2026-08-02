@@ -3,12 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PRESET_CATEGORIES } from "@/lib/categories";
-
-function todayLocalISODate() {
-  const d = new Date();
-  const offset = d.getTimezoneOffset();
-  return new Date(d.getTime() - offset * 60_000).toISOString().slice(0, 10);
-}
+import { todayLocalISODate } from "@/lib/date";
 
 type ExtractedFields = {
   date: string;

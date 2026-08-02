@@ -69,6 +69,10 @@ create table if not exists public.entries (
   receipt_file_url text,
   receipt_file_name text,
   paid boolean not null default false,
+  -- Payment audit trail: when the viewer marks something paid, they
+  -- record when and (optionally) a reference — not just a bare checkbox.
+  paid_at date,
+  payment_reference text,
   created_at timestamptz not null default now()
 );
 
@@ -95,8 +99,12 @@ to authenticated
 using (public.get_user_role() = 'viewer')
 with check (public.get_user_role() = 'viewer');
 
--- RLS alone can't restrict an UPDATE to a single column, so a trigger
--- enforces it: a viewer's update may only ever change `paid`.
+-- RLS alone can't restrict an UPDATE to specific columns, so a trigger
+-- enforces it: a viewer's update may only ever touch paid / paid_at /
+-- payment_reference — everything else about the claim itself is locked.
+-- This is the real security boundary; the app UI hiding other fields
+-- from her is just UX, not enforcement — this trigger is what actually
+-- stops a direct API call from editing anything else.
 create or replace function public.enforce_viewer_paid_only()
 returns trigger
 language plpgsql
@@ -114,7 +122,7 @@ begin
       or new.receipt_file_url is distinct from old.receipt_file_url
       or new.receipt_file_name is distinct from old.receipt_file_name
     then
-      raise exception 'Viewers may only update the paid field';
+      raise exception 'Viewers may only update paid, paid_at, and payment_reference';
     end if;
   end if;
   return new;

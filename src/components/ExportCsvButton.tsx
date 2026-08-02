@@ -9,7 +9,18 @@ function csvEscape(value: string) {
 
 export function ExportCsvButton({ entries }: { entries: Entry[] }) {
   function download() {
-    const header = ["Date", "Type", "Category", "Vendor", "Note", "Amount", "Paid", "Receipt File"];
+    const header = [
+      "Date",
+      "Type",
+      "Category",
+      "Vendor",
+      "Note",
+      "Amount",
+      "Paid",
+      "Paid Date",
+      "Payment Reference",
+      "Receipt File",
+    ];
     const rows = entries.map((e) => [
       e.date,
       e.type,
@@ -18,6 +29,8 @@ export function ExportCsvButton({ entries }: { entries: Entry[] }) {
       e.note ?? "",
       e.amount.toFixed(2),
       e.paid ? "yes" : "no",
+      e.paid_at ?? "",
+      e.payment_reference ?? "",
       e.receipt_file_name ?? "",
     ]);
 

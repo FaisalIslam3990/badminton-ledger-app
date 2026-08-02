@@ -2,11 +2,27 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentRole } from "@/lib/roles";
 import { NextResponse } from "next/server";
 
-const EDITABLE_FIELDS = ["date", "type", "category", "vendor", "note", "amount", "paid"] as const;
+const EDITABLE_FIELDS = [
+  "date",
+  "type",
+  "category",
+  "vendor",
+  "note",
+  "amount",
+  "paid",
+  "paid_at",
+  "payment_reference",
+] as const;
+
+// A viewer may only ever touch the payment-tracking fields — the claim
+// itself (date/amount/category/etc.) is locked. This is a convenience
+// check for a clean 403 instead of a raw SQL error; the actual security
+// boundary is the enforce_viewer_paid_only trigger in Supabase, which
+// blocks this at the database level regardless of what hits this route.
+const VIEWER_EDITABLE_FIELDS = ["paid", "paid_at", "payment_reference"] as const;
 
 // PATCH /api/entries/[id] — admin can edit any field; viewers may only
-// send { paid }. The DB trigger enforces this too, but we narrow the
-// payload here for a clean error instead of a raw SQL exception.
+// send paid / paid_at / payment_reference.
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { role } = await getCurrentRole();
@@ -19,10 +35,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   let update: Record<string, unknown>;
 
   if (role === "viewer") {
-    if (!("paid" in body) || typeof body.paid !== "boolean" || Object.keys(body).length !== 1) {
-      return NextResponse.json({ error: "Viewers may only update paid" }, { status: 403 });
+    const keys = Object.keys(body);
+    if (keys.length === 0 || !keys.every((k) => (VIEWER_EDITABLE_FIELDS as readonly string[]).includes(k))) {
+      return NextResponse.json(
+        { error: "Viewers may only update paid, paid_at, and payment_reference" },
+        { status: 403 },
+      );
     }
-    update = { paid: body.paid };
+    update = body;
   } else {
     update = Object.fromEntries(
       Object.entries(body).filter(([key]) => (EDITABLE_FIELDS as readonly string[]).includes(key)),
