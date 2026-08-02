@@ -12,7 +12,14 @@ import { PencilIcon, TrashIcon } from "./icons";
 
 type Row = Entry & { receiptSignedUrl: string | null };
 
-type PaidFilter = "unpaid" | "all" | "paid";
+type PaidFilter = "unpaid" | "awaiting" | "received" | "all";
+
+const FILTER_LABELS: Record<PaidFilter, string> = {
+  unpaid: "Unpaid",
+  awaiting: "Awaiting",
+  received: "Received",
+  all: "All",
+};
 
 function gbp(n: number) {
   return n.toLocaleString("en-GB", { style: "currency", currency: "GBP" });
@@ -99,20 +106,20 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
 
   const visibleEntries = entries.filter((e) => {
     if (filter === "unpaid") return !e.paid;
-    if (filter === "paid") return e.paid;
+    if (filter === "awaiting") return e.paid && !e.received;
+    if (filter === "received") return e.received;
     return true;
   });
 
-  // Under the Unpaid filter every visible row is unpaid by definition —
-  // repeating that on each row is just noise.
-  const showUnpaidBadge = filter !== "unpaid";
+  // Every filter except All narrows to a single implied status —
+  // repeating that badge on each row is just noise.
+  const showBadge = filter === "all";
 
   // Admin's Status column has nothing to show under Unpaid — no badge
   // (redundant) and no action (that's the viewer's job) — so drop the
   // column entirely rather than render dead space. Once she marks one
-  // paid it moves to the Paid tab automatically (filter is on `paid`,
-  // not `received`), where Status carries the "Awaiting confirmation"
-  // badge and the Confirm Received action.
+  // paid it moves to the Awaiting tab automatically, where Status carries
+  // the Confirm Received action.
   const showStatusColumn = !(role === "admin" && filter === "unpaid");
   const columnCount = 5 + (showStatusColumn ? 1 : 0) + (role === "admin" ? 1 : 0);
 
@@ -127,30 +134,33 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
       ? { emoji: "✅", text: "You're all caught up — nothing outstanding." }
       : filter === "unpaid"
         ? { emoji: "📭", text: "Nothing outstanding." }
-        : filter === "paid"
-          ? { emoji: "📭", text: "Nothing paid yet." }
-          : { emoji: "📭", text: "No entries yet." };
+        : filter === "awaiting"
+          ? { emoji: "📭", text: "Nothing awaiting confirmation." }
+          : filter === "received"
+            ? { emoji: "📭", text: "Nothing received yet." }
+            : { emoji: "📭", text: "No entries yet." };
 
   const filterCounts = {
     unpaid: entries.filter((e) => !e.paid).length,
+    awaiting: entries.filter((e) => e.paid && !e.received).length,
+    received: entries.filter((e) => e.received).length,
     all: entries.length,
-    paid: entries.filter((e) => e.paid).length,
   };
 
   return (
     <div className="card">
       <div className="flex flex-wrap gap-2 border-b border-border p-4">
-        {(["unpaid", "all", "paid"] as const).map((f) => (
+        {(["unpaid", "awaiting", "received", "all"] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`rounded-full px-4 py-2 text-xs font-medium capitalize ${
+            className={`rounded-full px-4 py-2 text-xs font-medium ${
               filter === f
                 ? "bg-primary text-white"
                 : "border border-border text-ink-muted hover:bg-white/5"
             }`}
           >
-            {f} ({filterCounts[f]})
+            {FILTER_LABELS[f]} ({filterCounts[f]})
           </button>
         ))}
       </div>
@@ -174,7 +184,7 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
               key={entry.id}
               entry={entry}
               role={role}
-              showUnpaidBadge={showUnpaidBadge}
+              showBadge={showBadge}
               onEdit={() => setEditingId(entry.id)}
               onDelete={() => deleteEntry(entry.id)}
               onChanged={() => router.refresh()}
@@ -240,7 +250,7 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
                       <StatusCell
                         entry={entry}
                         role={role}
-                        showUnpaidBadge={showUnpaidBadge}
+                        showBadge={showBadge}
                         onChanged={() => router.refresh()}
                       />
                     </td>
@@ -278,14 +288,14 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
 function EntryCard({
   entry,
   role,
-  showUnpaidBadge,
+  showBadge,
   onEdit,
   onDelete,
   onChanged,
 }: {
   entry: Row;
   role: Role;
-  showUnpaidBadge: boolean;
+  showBadge: boolean;
   onEdit: () => void;
   onDelete: () => void;
   onChanged: () => void;
@@ -298,7 +308,7 @@ function EntryCard({
         <span className="flex min-w-0 items-center gap-1.5 truncate text-xs text-ink-muted">
           {entry.date} · <CategoryTag category={entry.category} />
         </span>
-        <StatusBadge entry={entry} showUnpaidBadge={showUnpaidBadge} />
+        <StatusBadge entry={entry} showBadge={showBadge} />
       </div>
 
       <p className="mt-2 text-ink">{entry.note ?? "—"}</p>
@@ -333,10 +343,10 @@ function EntryCard({
 
 // Just the pill — used in the mobile card header and reused inside
 // StatusCell for the desktop table.
-function StatusBadge({ entry, showUnpaidBadge }: { entry: Row; showUnpaidBadge: boolean }) {
+function StatusBadge({ entry, showBadge }: { entry: Row; showBadge: boolean }) {
   if (entry.received) return <Badge tone="received">Received</Badge>;
   if (entry.paid) return <Badge tone="pending">Awaiting confirmation</Badge>;
-  if (!showUnpaidBadge) return null;
+  if (!showBadge) return null;
   return <Badge tone="unpaid">Unpaid</Badge>;
 }
 
@@ -436,17 +446,17 @@ function StatusActions({ entry, role, onChanged }: { entry: Row; role: Role; onC
 function StatusCell({
   entry,
   role,
-  showUnpaidBadge,
+  showBadge,
   onChanged,
 }: {
   entry: Row;
   role: Role;
-  showUnpaidBadge: boolean;
+  showBadge: boolean;
   onChanged: () => void;
 }) {
   return (
     <div className="space-y-1.5">
-      <StatusBadge entry={entry} showUnpaidBadge={showUnpaidBadge} />
+      <StatusBadge entry={entry} showBadge={showBadge} />
       <StatusActions entry={entry} role={role} onChanged={onChanged} />
     </div>
   );
