@@ -93,7 +93,7 @@ export function AddEntryForm() {
             accept="image/*,application/pdf"
             capture="environment"
             onChange={handleFileChange}
-            className="w-full rounded-lg border border-border bg-white px-3 py-2"
+            className="w-full rounded-lg border border-border bg-card-alt px-3 py-2"
           />
         </div>
       )}
@@ -115,7 +115,7 @@ export function AddEntryForm() {
               value={fields.date}
               onChange={(e) => setFields({ ...fields, date: e.target.value })}
               required
-              className="w-full rounded-lg border border-border bg-white px-3 py-2"
+              className="w-full rounded-lg border border-border bg-card-alt px-3 py-2"
             />
           </div>
           <div>
@@ -124,7 +124,7 @@ export function AddEntryForm() {
               type="text"
               value={fields.vendor}
               onChange={(e) => setFields({ ...fields, vendor: e.target.value })}
-              className="w-full rounded-lg border border-border bg-white px-3 py-2"
+              className="w-full rounded-lg border border-border bg-card-alt px-3 py-2"
             />
           </div>
           <div>
@@ -137,7 +137,7 @@ export function AddEntryForm() {
               value={fields.amount}
               onChange={(e) => setFields({ ...fields, amount: Number(e.target.value) })}
               required
-              className="amount w-full rounded-lg border border-border bg-white px-3 py-2"
+              className="amount w-full rounded-lg border border-border bg-card-alt px-3 py-2"
             />
           </div>
           <div>
@@ -147,7 +147,7 @@ export function AddEntryForm() {
               list="category-options"
               value={fields.category}
               onChange={(e) => setFields({ ...fields, category: e.target.value })}
-              className="w-full rounded-lg border border-border bg-white px-3 py-2"
+              className="w-full rounded-lg border border-border bg-card-alt px-3 py-2"
             />
             <datalist id="category-options">
               {PRESET_CATEGORIES.map((c) => (
@@ -161,7 +161,7 @@ export function AddEntryForm() {
               type="text"
               value={fields.note}
               onChange={(e) => setFields({ ...fields, note: e.target.value })}
-              className="w-full rounded-lg border border-border bg-white px-3 py-2"
+              className="w-full rounded-lg border border-border bg-card-alt px-3 py-2"
             />
           </div>
 

@@ -47,7 +47,7 @@ function MagicLinkForm() {
         name="email"
         required
         placeholder="you@example.com"
-        className="w-full rounded-lg border border-border bg-white px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-primary"
+        className="w-full rounded-lg border border-border bg-card-alt px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-primary"
       />
       {state.error && <p className="text-sm text-unpaid-ink">{state.error}</p>}
       <button
@@ -75,14 +75,14 @@ function PasswordForm() {
         placeholder="Username or email"
         autoCapitalize="off"
         autoCorrect="off"
-        className="w-full rounded-lg border border-border bg-white px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-primary"
+        className="w-full rounded-lg border border-border bg-card-alt px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-primary"
       />
       <input
         type="password"
         name="password"
         required
         placeholder="Password"
-        className="w-full rounded-lg border border-border bg-white px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-primary"
+        className="w-full rounded-lg border border-border bg-card-alt px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-primary"
       />
       {state.error && <p className="text-sm text-unpaid-ink">{state.error}</p>}
       <button

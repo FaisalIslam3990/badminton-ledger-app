@@ -1,34 +1,38 @@
 @import "tailwindcss";
 
 :root {
-  --color-bg: #f7f8fa;
-  --color-card: #ffffff;
-  --color-ink: #111827;
-  --color-ink-muted: #6b7280;
-  --color-border: #e5e7eb;
+  --color-bg: #0b0f0e;
+  --color-card: #141b19;
+  --color-card-alt: #1b2e29;
+  --color-ink: #f3f5f3;
+  --color-ink-muted: #8a9691;
+  --color-border: #232b28;
 
-  --color-primary: #0f6e5e;
-  --color-primary-dark: #0b5347;
-  --color-primary-ink: #ffffff;
-  --color-viewer-accent: #6d4fc7;
+  --color-primary: #1f6f5c;
+  --color-primary-dark: #175349;
+  --color-accent: #c6f24c;
+  --color-accent-ink: #0b0f0e;
+  --color-viewer-accent: #8b7cf6;
 
-  --color-unpaid: #ffe8e4;
-  --color-unpaid-ink: #d0452f;
-  --color-pending: #fff3d6;
-  --color-pending-ink: #b5750b;
-  --color-received: #e1f5ea;
-  --color-received-ink: #1e8a52;
+  --color-unpaid: rgba(239, 68, 68, 0.15);
+  --color-unpaid-ink: #f87171;
+  --color-pending: rgba(245, 158, 11, 0.15);
+  --color-pending-ink: #fbbf24;
+  --color-received: rgba(34, 197, 94, 0.15);
+  --color-received-ink: #4ade80;
 }
 
 @theme inline {
   --color-bg: var(--color-bg);
   --color-card: var(--color-card);
+  --color-card-alt: var(--color-card-alt);
   --color-ink: var(--color-ink);
   --color-ink-muted: var(--color-ink-muted);
   --color-border: var(--color-border);
   --color-primary: var(--color-primary);
   --color-primary-dark: var(--color-primary-dark);
-  --color-primary-ink: var(--color-primary-ink);
+  --color-accent: var(--color-accent);
+  --color-accent-ink: var(--color-accent-ink);
   --color-viewer-accent: var(--color-viewer-accent);
   --color-unpaid: var(--color-unpaid);
   --color-unpaid-ink: var(--color-unpaid-ink);
@@ -46,8 +50,8 @@ body {
 
 .card {
   background: var(--color-card);
+  border: 1px solid var(--color-border);
   border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .amount {

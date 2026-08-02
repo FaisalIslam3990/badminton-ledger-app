@@ -4,10 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Entry } from "@/lib/summary";
 import type { Role } from "@/lib/roles";
-import { PRESET_CATEGORIES, categoryEmoji } from "@/lib/categories";
+import { PRESET_CATEGORIES, categoryBadge } from "@/lib/categories";
 import { todayLocalISODate, formatDateUK, formatDateTimeUK } from "@/lib/date";
 import { MarkPaidControl } from "./MarkPaidControl";
 import { ReceiptThumb } from "./ReceiptThumb";
+import { PencilIcon, TrashIcon } from "./icons";
 
 type Row = Entry & { receiptSignedUrl: string | null };
 
@@ -46,13 +47,46 @@ function Badge({ children, tone }: { children: React.ReactNode; tone: "unpaid" |
 }
 
 function CategoryTag({ category }: { category: string | null }) {
+  const badge = categoryBadge(category);
   return (
     <span className="inline-flex items-center gap-1.5">
-      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs">
-        {categoryEmoji(category)}
+      <span
+        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+        style={{ backgroundColor: badge.bg, color: badge.text }}
+      >
+        {badge.letter}
       </span>
       <span className="truncate">{category ?? "—"}</span>
     </span>
+  );
+}
+
+function IconButton({
+  onClick,
+  variant,
+  label,
+  children,
+  size = "h-8 w-8",
+}: {
+  onClick: () => void;
+  variant: "edit" | "delete";
+  label: string;
+  children: React.ReactNode;
+  size?: string;
+}) {
+  const variantClass =
+    variant === "delete"
+      ? "border-border text-ink-muted hover:border-unpaid-ink/50 hover:bg-unpaid hover:text-unpaid-ink"
+      : "border-border text-ink-muted hover:bg-white/5 hover:text-ink";
+  return (
+    <button
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+      className={`flex ${size} items-center justify-center rounded-md border ${variantClass}`}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -88,18 +122,26 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
           ? { emoji: "📭", text: "Nothing paid yet." }
           : { emoji: "📭", text: "No entries yet." };
 
+  const filterCounts = {
+    unpaid: entries.filter((e) => !e.paid).length,
+    all: entries.length,
+    paid: entries.filter((e) => e.paid).length,
+  };
+
   return (
     <div className="card">
-      <div className="flex gap-1 border-b border-border px-4 py-3">
+      <div className="flex flex-wrap gap-2 border-b border-border p-4">
         {(["unpaid", "all", "paid"] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`rounded-lg px-3 py-2 text-xs font-medium capitalize ${
-              filter === f ? "bg-primary text-white" : "text-ink-muted hover:bg-bg"
+            className={`rounded-full px-4 py-2 text-xs font-medium capitalize ${
+              filter === f
+                ? "bg-primary text-white"
+                : "border border-border text-ink-muted hover:bg-white/5"
             }`}
           >
-            {f}
+            {f} ({filterCounts[f]})
           </button>
         ))}
       </div>
@@ -194,18 +236,14 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
                   </td>
                   {role === "admin" && (
                     <td className="whitespace-nowrap px-4 py-4 text-right">
-                      <button
-                        onClick={() => setEditingId(entry.id)}
-                        className="mr-3 text-primary hover:underline"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => deleteEntry(entry.id)}
-                        className="text-unpaid-ink hover:underline"
-                      >
-                        Delete
-                      </button>
+                      <div className="flex justify-end gap-2">
+                        <IconButton onClick={() => setEditingId(entry.id)} variant="edit" label="Edit">
+                          <PencilIcon className="h-3.5 w-3.5" />
+                        </IconButton>
+                        <IconButton onClick={() => deleteEntry(entry.id)} variant="delete" label="Delete">
+                          <TrashIcon className="h-3.5 w-3.5" />
+                        </IconButton>
+                      </div>
                     </td>
                   )}
                 </tr>
@@ -242,7 +280,7 @@ function EntryCard({
   onChanged: () => void;
 }) {
   return (
-    <div className={`p-4 ${statusBgClass(entry)}`}>
+    <div className={`p-5 ${statusBgClass(entry)}`}>
       {/* Compact header: date · category, plus the status badge so the
           state is visible without scanning the whole card. */}
       <div className="flex items-center justify-between gap-2">
@@ -269,13 +307,13 @@ function EntryCard({
       </div>
 
       {role === "admin" && (
-        <div className="mt-3 flex gap-4 text-sm">
-          <button onClick={onEdit} className="min-h-11 text-primary">
-            Edit
-          </button>
-          <button onClick={onDelete} className="min-h-11 text-unpaid-ink">
-            Delete
-          </button>
+        <div className="mt-3 flex gap-2">
+          <IconButton onClick={onEdit} variant="edit" label="Edit" size="h-11 w-11">
+            <PencilIcon className="h-4 w-4" />
+          </IconButton>
+          <IconButton onClick={onDelete} variant="delete" label="Delete" size="h-11 w-11">
+            <TrashIcon className="h-4 w-4" />
+          </IconButton>
         </div>
       )}
     </div>
@@ -356,7 +394,7 @@ function StatusActions({ entry, role, onChanged }: { entry: Row; role: Role; onC
           {role === "admin" && (
             <button
               onClick={confirmReceived}
-              className="min-h-9 rounded-lg border border-border px-2 py-1 text-xs text-ink hover:bg-bg"
+              className="min-h-9 rounded-lg border border-border px-2 py-1 text-xs text-ink hover:bg-white/5"
             >
               Confirm Received
             </button>
@@ -437,7 +475,7 @@ function EditCard({
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="w-full rounded-lg border border-border bg-white px-3 py-2"
+          className="w-full rounded-lg border border-border bg-card-alt px-3 py-2"
         />
       </div>
       <div>
@@ -447,7 +485,7 @@ function EditCard({
           list="edit-category-options-mobile"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="w-full rounded-lg border border-border bg-white px-3 py-2"
+          className="w-full rounded-lg border border-border bg-card-alt px-3 py-2"
         />
         <datalist id="edit-category-options-mobile">
           {PRESET_CATEGORIES.map((c) => (
@@ -461,7 +499,7 @@ function EditCard({
           type="text"
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          className="w-full rounded-lg border border-border bg-white px-3 py-2"
+          className="w-full rounded-lg border border-border bg-card-alt px-3 py-2"
         />
       </div>
       <div>
@@ -471,7 +509,7 @@ function EditCard({
           step="0.01"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          className="amount w-full rounded-lg border border-border bg-white px-3 py-2"
+          className="amount w-full rounded-lg border border-border bg-card-alt px-3 py-2"
         />
       </div>
       <div className="flex gap-2 pt-1">
@@ -523,7 +561,7 @@ function EditRow({
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="w-full rounded-lg border border-border bg-white px-2 py-1"
+          className="w-full rounded-lg border border-border bg-card-alt px-2 py-1"
         />
       </td>
       <td className="px-4 py-3">
@@ -532,7 +570,7 @@ function EditRow({
           list="edit-category-options"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="w-full rounded-lg border border-border bg-white px-2 py-1"
+          className="w-full rounded-lg border border-border bg-card-alt px-2 py-1"
         />
         <datalist id="edit-category-options">
           {PRESET_CATEGORIES.map((c) => (
@@ -545,7 +583,7 @@ function EditRow({
           type="text"
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          className="w-full rounded-lg border border-border bg-white px-2 py-1"
+          className="w-full rounded-lg border border-border bg-card-alt px-2 py-1"
         />
       </td>
       <td className="px-4 py-3">
@@ -554,7 +592,7 @@ function EditRow({
           step="0.01"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          className="amount w-full rounded-lg border border-border bg-white px-2 py-1 text-right"
+          className="amount w-full rounded-lg border border-border bg-card-alt px-2 py-1 text-right"
         />
       </td>
       <td className="px-4 py-3"></td>

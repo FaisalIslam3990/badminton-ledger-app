@@ -17,7 +17,7 @@ export function PasswordForm() {
         required
         minLength={8}
         placeholder="New password (min 8 characters)"
-        className="w-full rounded-lg border border-border bg-white px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-primary"
+        className="w-full rounded-lg border border-border bg-card-alt px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-primary"
       />
       <input
         type="password"
@@ -25,7 +25,7 @@ export function PasswordForm() {
         required
         minLength={8}
         placeholder="Confirm password"
-        className="w-full rounded-lg border border-border bg-white px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-primary"
+        className="w-full rounded-lg border border-border bg-card-alt px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-primary"
       />
       {state.error && <p className="text-sm text-unpaid-ink">{state.error}</p>}
       {state.success && <p className="text-sm text-received-ink">Password set.</p>}

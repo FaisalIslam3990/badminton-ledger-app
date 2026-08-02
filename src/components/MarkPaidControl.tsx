@@ -82,7 +82,7 @@ export function MarkPaidControl({
     <>
       <button
         onClick={() => setOpen(true)}
-        className={buttonClassName ?? "rounded-lg border border-border px-2 py-1 text-xs text-ink hover:bg-bg"}
+        className={buttonClassName ?? "rounded-lg border border-border px-2 py-1 text-xs text-ink hover:bg-white/5"}
       >
         {label}
       </button>

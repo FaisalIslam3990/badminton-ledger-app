@@ -49,7 +49,10 @@ export function ExportCsvButton({ entries }: { entries: Entry[] }) {
   }
 
   return (
-    <button onClick={download} className="text-sm font-medium text-primary hover:underline">
+    <button
+      onClick={download}
+      className="rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-ink hover:bg-white/5"
+    >
       Export CSV backup
     </button>
   );

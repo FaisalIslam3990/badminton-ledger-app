@@ -22,7 +22,7 @@ export function AddUserForm() {
         placeholder="Username (e.g. caroline)"
         autoCapitalize="off"
         autoCorrect="off"
-        className="w-full rounded-lg border border-border bg-white px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-primary"
+        className="w-full rounded-lg border border-border bg-card-alt px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-primary"
       />
       <input
         type="text"
@@ -30,12 +30,12 @@ export function AddUserForm() {
         required
         minLength={8}
         placeholder="Password (min 8 characters)"
-        className="w-full rounded-lg border border-border bg-white px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-primary"
+        className="w-full rounded-lg border border-border bg-card-alt px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-primary"
       />
       <select
         name="role"
         defaultValue="viewer"
-        className="w-full rounded-lg border border-border bg-white px-3 py-2 text-ink"
+        className="w-full rounded-lg border border-border bg-card-alt px-3 py-2 text-ink"
       >
         <option value="viewer">Viewer</option>
         <option value="admin">Admin</option>

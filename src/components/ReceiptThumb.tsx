@@ -28,7 +28,7 @@ export function ReceiptThumb({
         target="_blank"
         rel="noopener noreferrer"
         title={name}
-        className={`flex ${size} items-center justify-center rounded border border-border bg-white text-[10px] font-medium text-ink-muted`}
+        className={`flex ${size} items-center justify-center rounded border border-border bg-card-alt text-[10px] font-medium text-ink-muted`}
       >
         PDF
       </a>

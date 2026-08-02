@@ -32,7 +32,7 @@ export function AccountMenu({
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 hover:bg-black/5"
+        className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 hover:bg-white/5"
         aria-label="Account menu"
       >
         <span
@@ -52,7 +52,7 @@ export function AccountMenu({
           <Link
             href="/account"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-ink hover:bg-bg"
+            className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-ink hover:bg-white/5"
           >
             <GearIcon />
             Account
@@ -61,7 +61,7 @@ export function AccountMenu({
             <Link
               href="/users"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-ink hover:bg-bg"
+              className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-ink hover:bg-white/5"
             >
               <UsersIcon />
               Users
@@ -70,7 +70,7 @@ export function AccountMenu({
           <form action={signOutAction}>
             <button
               type="submit"
-              className="block w-full rounded-lg px-2 py-1.5 text-left text-primary hover:bg-bg"
+              className="block w-full rounded-lg px-2 py-1.5 text-left text-primary hover:bg-white/5"
             >
               Sign out
             </button>

@@ -64,12 +64,15 @@ export default async function LedgerPage() {
       ) : (
         <ViewerSummary entries={rows} />
       )}
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-semibold text-ink">Ledger</h2>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3">
           {role === "admin" && <ExportCsvButton entries={rows} />}
           {role === "admin" && (
-            <Link href="/add" className="text-sm font-medium text-primary hover:underline">
+            <Link
+              href="/add"
+              className="rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-accent-ink hover:opacity-90"
+            >
               + Add Entry
             </Link>
           )}
