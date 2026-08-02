@@ -16,9 +16,11 @@ export function ExportCsvButton({ entries }: { entries: Entry[] }) {
       "Vendor",
       "Note",
       "Amount",
-      "Paid",
+      "Paid (Sent)",
       "Paid Date",
       "Payment Reference",
+      "Received (Confirmed)",
+      "Received Date",
       "Receipt File",
     ];
     const rows = entries.map((e) => [
@@ -31,6 +33,8 @@ export function ExportCsvButton({ entries }: { entries: Entry[] }) {
       e.paid ? "yes" : "no",
       e.paid_at ?? "",
       e.payment_reference ?? "",
+      e.received ? "yes" : "no",
+      e.received_at ?? "",
       e.receipt_file_name ?? "",
     ]);
 

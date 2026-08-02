@@ -13,6 +13,8 @@ export type Entry = {
   paid: boolean;
   paid_at: string | null;
   payment_reference: string | null;
+  received: boolean;
+  received_at: string | null;
   created_at: string;
 };
 

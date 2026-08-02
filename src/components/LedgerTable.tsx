@@ -6,6 +6,7 @@ import type { Entry } from "@/lib/summary";
 import type { Role } from "@/lib/roles";
 import { PRESET_CATEGORIES } from "@/lib/categories";
 import { todayLocalISODate, formatDateUK } from "@/lib/date";
+import { MarkPaidControl } from "./MarkPaidControl";
 
 type Row = Entry & { receiptSignedUrl: string | null };
 
@@ -62,7 +63,7 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
             <th className="px-3 py-2 font-normal">Note</th>
             <th className="px-3 py-2 font-normal text-right">Amount</th>
             <th className="px-3 py-2 font-normal">Receipt</th>
-            <th className="px-3 py-2 font-normal">Paid</th>
+            <th className="px-3 py-2 font-normal">Status</th>
             {role === "admin" && <th className="px-3 py-2 font-normal">Actions</th>}
           </tr>
         </thead>
@@ -106,13 +107,7 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
                   )}
                 </td>
                 <td className="px-3 py-2">
-                  {role === "admin" || role === "viewer" ? (
-                    <PaidCell entry={entry} onChanged={() => router.refresh()} />
-                  ) : entry.paid ? (
-                    "Paid"
-                  ) : (
-                    "—"
-                  )}
+                  <StatusCell entry={entry} role={role} onChanged={() => router.refresh()} />
                 </td>
                 {role === "admin" && (
                   <td className="px-3 py-2 whitespace-nowrap">
@@ -146,90 +141,74 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
   );
 }
 
-function PaidCell({ entry, onChanged }: { entry: Row; onChanged: () => void }) {
-  const [open, setOpen] = useState(false);
-  const [paidAt, setPaidAt] = useState(entry.paid_at ?? todayLocalISODate());
-  const [reference, setReference] = useState(entry.payment_reference ?? "");
-  const [saving, setSaving] = useState(false);
-
-  async function markPaid() {
-    setSaving(true);
+// Two-step settlement, split cleanly by whose job it is: she marks a
+// claim sent (date + optional reference); only he can confirm it landed.
+// Once received, the row is locked — neither the UI here nor the DB
+// trigger let a viewer touch it again.
+function StatusCell({ entry, role, onChanged }: { entry: Row; role: Role; onChanged: () => void }) {
+  async function patch(body: Record<string, unknown>) {
     await fetch(`/api/entries/${entry.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ paid: true, paid_at: paidAt, payment_reference: reference || null }),
+      body: JSON.stringify(body),
     });
-    setSaving(false);
-    setOpen(false);
     onChanged();
   }
 
-  async function markUnpaid() {
-    if (!confirm("Mark as unpaid? This clears the payment date/reference.")) return;
-    await fetch(`/api/entries/${entry.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ paid: false, paid_at: null, payment_reference: null }),
-    });
-    onChanged();
+  async function markSent(paidAt: string, reference: string) {
+    await patch({ paid: true, paid_at: paidAt, payment_reference: reference || null });
+  }
+
+  async function undoSent() {
+    if (!confirm("Undo this payment? This clears the payment date/reference.")) return;
+    await patch({ paid: false, paid_at: null, payment_reference: null });
+  }
+
+  async function confirmReceived() {
+    await patch({ received: true, received_at: todayLocalISODate() });
+  }
+
+  if (entry.received) {
+    return (
+      <span className="text-xs text-income-ink">
+        Received {entry.received_at ? formatDateUK(entry.received_at) : ""}
+      </span>
+    );
   }
 
   if (entry.paid) {
+    if (role === "admin") {
+      return (
+        <div>
+          <p className="text-xs text-ink-muted mb-1">
+            Sent {entry.paid_at ? formatDateUK(entry.paid_at) : ""}
+            {entry.payment_reference ? ` · ${entry.payment_reference}` : ""}
+          </p>
+          <button
+            onClick={confirmReceived}
+            className="rounded border border-brass/40 px-2 py-1 text-xs text-ink hover:bg-white"
+          >
+            Confirm Received
+          </button>
+        </div>
+      );
+    }
     return (
       <button
-        onClick={markUnpaid}
+        onClick={undoSent}
         title={entry.payment_reference ? `Ref: ${entry.payment_reference} — click to undo` : "Click to undo"}
-        className="text-income-ink hover:underline"
+        className="text-xs text-ink-muted hover:underline"
       >
-        ✓ {entry.paid_at ? formatDateUK(entry.paid_at) : "Paid"}
+        Sent {entry.paid_at ? formatDateUK(entry.paid_at) : ""} — awaiting confirmation
       </button>
     );
   }
 
-  return (
-    <div className="relative inline-block">
-      <button
-        onClick={() => setOpen(!open)}
-        className="rounded border border-brass/40 px-2 py-1 text-xs text-ink hover:bg-white"
-      >
-        Mark Paid
-      </button>
-      {open && (
-        <div className="absolute left-0 top-full z-10 mt-1 w-56 rounded border border-brass/40 bg-white p-3 text-left shadow-lg">
-          <label className="block text-xs text-ink-muted mb-1">Payment date</label>
-          <input
-            type="date"
-            value={paidAt}
-            onChange={(e) => setPaidAt(e.target.value)}
-            className="mb-2 w-full rounded border border-brass/40 px-2 py-1 text-sm"
-          />
-          <label className="block text-xs text-ink-muted mb-1">Reference (optional)</label>
-          <input
-            type="text"
-            value={reference}
-            onChange={(e) => setReference(e.target.value)}
-            placeholder="e.g. bank transfer ref"
-            className="mb-3 w-full rounded border border-brass/40 px-2 py-1 text-sm"
-          />
-          <div className="flex gap-2">
-            <button
-              onClick={markPaid}
-              disabled={saving}
-              className="flex-1 rounded bg-brass px-2 py-1 text-xs font-medium text-ink-dark disabled:opacity-60"
-            >
-              {saving ? "Saving…" : "Confirm"}
-            </button>
-            <button
-              onClick={() => setOpen(false)}
-              className="flex-1 rounded border border-brass/40 px-2 py-1 text-xs text-ink"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  if (role === "viewer") {
+    return <MarkPaidControl label="Mark Paid" onConfirm={markSent} />;
+  }
+
+  return <span className="text-xs text-ink-muted">Unpaid</span>;
 }
 
 function EditRow({

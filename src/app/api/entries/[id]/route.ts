@@ -12,6 +12,8 @@ const EDITABLE_FIELDS = [
   "paid",
   "paid_at",
   "payment_reference",
+  "received",
+  "received_at",
 ] as const;
 
 // A viewer may only ever touch the payment-tracking fields — the claim

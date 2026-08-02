@@ -68,11 +68,15 @@ create table if not exists public.entries (
   amount numeric(10, 2) not null,
   receipt_file_url text,
   receipt_file_name text,
+  -- Two-step settlement: `paid` means the viewer has sent the money
+  -- (with a date + optional reference as an audit trail); `received`
+  -- means the admin has separately confirmed it landed. Money isn't
+  -- fully settled until both are true.
   paid boolean not null default false,
-  -- Payment audit trail: when the viewer marks something paid, they
-  -- record when and (optionally) a reference — not just a bare checkbox.
   paid_at date,
   payment_reference text,
+  received boolean not null default false,
+  received_at date,
   created_at timestamptz not null default now()
 );
 
@@ -101,10 +105,14 @@ with check (public.get_user_role() = 'viewer');
 
 -- RLS alone can't restrict an UPDATE to specific columns, so a trigger
 -- enforces it: a viewer's update may only ever touch paid / paid_at /
--- payment_reference — everything else about the claim itself is locked.
--- This is the real security boundary; the app UI hiding other fields
--- from her is just UX, not enforcement — this trigger is what actually
--- stops a direct API call from editing anything else.
+-- payment_reference — everything else, including received / received_at
+-- (that's the admin's confirmation, not hers to set), is locked. This is
+-- the real security boundary; the app UI hiding other fields from her is
+-- just UX, not enforcement — this trigger is what actually stops a
+-- direct API call from editing anything else. Once received is true,
+-- the admin has confirmed the money — a viewer can no longer touch that
+-- row at all, so a "sent" claim can't be quietly reopened after the
+-- fact.
 create or replace function public.enforce_viewer_paid_only()
 returns trigger
 language plpgsql
@@ -113,6 +121,9 @@ set search_path = public
 as $$
 begin
   if public.get_user_role() = 'viewer' then
+    if old.received = true then
+      raise exception 'This entry has already been confirmed received and can no longer be changed';
+    end if;
     if new.date is distinct from old.date
       or new.type is distinct from old.type
       or new.category is distinct from old.category
@@ -121,6 +132,8 @@ begin
       or new.amount is distinct from old.amount
       or new.receipt_file_url is distinct from old.receipt_file_url
       or new.receipt_file_name is distinct from old.receipt_file_name
+      or new.received is distinct from old.received
+      or new.received_at is distinct from old.received_at
     then
       raise exception 'Viewers may only update paid, paid_at, and payment_reference';
     end if;

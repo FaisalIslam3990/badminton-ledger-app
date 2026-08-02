@@ -43,6 +43,12 @@ export default async function LedgerPage() {
   }
 
   const { totalSpent } = computeSummary(rows);
+  const pendingConfirmCount = rows.filter((e) => e.paid && !e.received).length;
+
+  // Income is money coming into the club, not part of her verify-and-pay
+  // job — and under the new flow it'd otherwise look like a second,
+  // redundant "she sent money" row alongside the payment status column.
+  const ledgerRows = role === "viewer" ? rowsWithReceipts.filter((e) => e.type === "expense") : rowsWithReceipts;
 
   return (
     <div>
@@ -50,6 +56,11 @@ export default async function LedgerPage() {
         <>
           <SummaryPanel entries={rows} />
           <GrantTimeline totalSpent={totalSpent} />
+          {pendingConfirmCount > 0 && (
+            <p className="text-sm text-amber-800 mb-3">
+              {pendingConfirmCount} payment{pendingConfirmCount === 1 ? "" : "s"} awaiting your confirmation
+            </p>
+          )}
         </>
       ) : (
         <ViewerSummary entries={rows} />
@@ -65,7 +76,7 @@ export default async function LedgerPage() {
           )}
         </div>
       </div>
-      <LedgerTable entries={rowsWithReceipts} role={role} />
+      <LedgerTable entries={ledgerRows} role={role} />
     </div>
   );
 }
