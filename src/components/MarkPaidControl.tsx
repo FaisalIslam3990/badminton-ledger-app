@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { todayLocalISODate } from "@/lib/date";
 
 export function MarkPaidControl({
@@ -24,6 +25,49 @@ export function MarkPaidControl({
     setOpen(false);
   }
 
+  const modal = (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={() => setOpen(false)}
+    >
+      <div
+        className="w-full max-w-xs rounded border border-brass/40 bg-white p-4 text-left shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <label className="block text-sm text-ink-muted mb-1">Payment date</label>
+        <input
+          type="date"
+          value={paidAt}
+          onChange={(e) => setPaidAt(e.target.value)}
+          className="mb-3 w-full rounded border border-brass/40 px-3 py-2 text-base"
+        />
+        <label className="block text-sm text-ink-muted mb-1">Reference (optional)</label>
+        <input
+          type="text"
+          value={reference}
+          onChange={(e) => setReference(e.target.value)}
+          placeholder="e.g. bank transfer ref"
+          className="mb-4 w-full rounded border border-brass/40 px-3 py-2 text-base"
+        />
+        <div className="flex gap-2">
+          <button
+            onClick={confirm}
+            disabled={saving}
+            className="flex-1 rounded bg-brass px-3 py-2 text-sm font-medium text-ink-dark disabled:opacity-60"
+          >
+            {saving ? "Saving…" : "Confirm"}
+          </button>
+          <button
+            onClick={() => setOpen(false)}
+            className="flex-1 rounded border border-brass/40 px-3 py-2 text-sm text-ink"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <>
       <button
@@ -32,48 +76,7 @@ export function MarkPaidControl({
       >
         {label}
       </button>
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          onClick={() => setOpen(false)}
-        >
-          <div
-            className="w-full max-w-xs rounded border border-brass/40 bg-white p-4 text-left shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <label className="block text-sm text-ink-muted mb-1">Payment date</label>
-            <input
-              type="date"
-              value={paidAt}
-              onChange={(e) => setPaidAt(e.target.value)}
-              className="mb-3 w-full rounded border border-brass/40 px-3 py-2 text-base"
-            />
-            <label className="block text-sm text-ink-muted mb-1">Reference (optional)</label>
-            <input
-              type="text"
-              value={reference}
-              onChange={(e) => setReference(e.target.value)}
-              placeholder="e.g. bank transfer ref"
-              className="mb-4 w-full rounded border border-brass/40 px-3 py-2 text-base"
-            />
-            <div className="flex gap-2">
-              <button
-                onClick={confirm}
-                disabled={saving}
-                className="flex-1 rounded bg-brass px-3 py-2 text-sm font-medium text-ink-dark disabled:opacity-60"
-              >
-                {saving ? "Saving…" : "Confirm"}
-              </button>
-              <button
-                onClick={() => setOpen(false)}
-                className="flex-1 rounded border border-brass/40 px-3 py-2 text-sm text-ink"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {open && typeof document !== "undefined" && createPortal(modal, document.body)}
     </>
   );
 }
