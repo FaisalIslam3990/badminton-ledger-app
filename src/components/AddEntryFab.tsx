@@ -38,12 +38,16 @@ export function AddEntryFab() {
         onChange={handleChange}
         className="hidden"
       />
+      {/* Pill instead of a bare circle, and raised further off the
+          bottom edge — a plain icon-only circle sitting right at the
+          edge covered the last row while scrolling. */}
       <button
         onClick={() => inputRef.current?.click()}
         aria-label="Add entry"
-        className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-accent-ink shadow-lg shadow-black/40 hover:opacity-90"
+        className="fixed bottom-[calc(2.5rem+env(safe-area-inset-bottom))] right-5 z-40 flex h-12 items-center gap-1.5 rounded-full bg-accent px-5 text-sm font-semibold text-accent-ink shadow-lg shadow-black/40 hover:opacity-90"
       >
-        <PlusIcon className="h-6 w-6" />
+        <PlusIcon className="h-4 w-4" />
+        Add
       </button>
     </>
   );
