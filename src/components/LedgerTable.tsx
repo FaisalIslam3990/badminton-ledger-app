@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { createPortal } from "react-dom";
 import type { Entry } from "@/lib/summary";
 import type { Role } from "@/lib/roles";
 import { PRESET_CATEGORIES, categoryBadge } from "@/lib/categories";
 import { todayLocalISODate, formatDateUK, formatDateTimeUK } from "@/lib/date";
 import { MarkPaidControl } from "./MarkPaidControl";
 import { ReceiptThumb } from "./ReceiptThumb";
-import { PencilIcon, TrashIcon } from "./icons";
+import { ExportCsvButton } from "./ExportCsvButton";
+import { DotsIcon, PencilIcon, TrashIcon } from "./icons";
 
 type Row = Entry & { receiptSignedUrl: string | null };
 
@@ -60,47 +62,95 @@ function Badge({ children, tone }: { children: React.ReactNode; tone: "unpaid" |
   );
 }
 
+// No truncation: category is free text (the presets alone include
+// "Public Liability Insurance"), and cutting it mid-word read as a
+// bug. Wrapping onto a second line is the honest trade-off.
 function CategoryTag({ category }: { category: string | null }) {
   const badge = categoryBadge(category);
   return (
-    <span className="inline-flex items-center gap-1.5">
+    <span className="inline-flex max-w-[11rem] items-start gap-1.5 sm:max-w-[13rem]">
       <span
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+        className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
         style={{ backgroundColor: badge.bg, color: badge.text }}
       >
         {badge.letter}
       </span>
-      <span className="truncate">{category ?? "—"}</span>
+      <span className="font-medium leading-snug text-ink">{category ?? "—"}</span>
     </span>
   );
 }
 
-function IconButton({
-  onClick,
-  variant,
-  label,
-  children,
-  size = "h-8 w-8",
-}: {
-  onClick: () => void;
-  variant: "edit" | "delete";
-  label: string;
-  children: React.ReactNode;
-  size?: string;
-}) {
-  const variantClass =
-    variant === "delete"
-      ? "border-border text-ink-muted hover:border-unpaid-ink/50 hover:bg-unpaid hover:text-unpaid-ink"
-      : "border-border text-ink-muted hover:bg-white/5 hover:text-ink";
+// Anchored, portal-rendered so it's never clipped by the table's
+// `overflow-x-auto` ancestor (same problem the receipt lightbox and
+// Mark Paid modal solve with a portal). Replaces the always-visible
+// Edit/Delete icon pair with a single tap target per row.
+function RowMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [coords, setCoords] = useState<{ top: number; right: number } | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  function openMenu() {
+    const rect = buttonRef.current?.getBoundingClientRect();
+    if (rect) setCoords({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+    setOpen(true);
+  }
+
+  useEffect(() => {
+    if (!open) return;
+    function close() {
+      setOpen(false);
+    }
+    window.addEventListener("scroll", close, true);
+    window.addEventListener("resize", close);
+    return () => {
+      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("resize", close);
+    };
+  }, [open]);
+
   return (
-    <button
-      onClick={onClick}
-      aria-label={label}
-      title={label}
-      className={`flex ${size} items-center justify-center rounded-md border ${variantClass}`}
-    >
-      {children}
-    </button>
+    <>
+      <button
+        ref={buttonRef}
+        onClick={openMenu}
+        aria-label="Row actions"
+        className="flex h-9 w-9 items-center justify-center rounded-md border border-border text-ink-muted hover:bg-white/5 hover:text-ink"
+      >
+        <DotsIcon className="h-4 w-4" />
+      </button>
+      {open &&
+        coords &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+            <div
+              className="card fixed z-40 w-36 p-1 text-sm"
+              style={{ top: coords.top, right: coords.right }}
+            >
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  onEdit();
+                }}
+                className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-ink hover:bg-white/5"
+              >
+                <PencilIcon className="h-3.5 w-3.5" /> Edit
+              </button>
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  onDelete();
+                }}
+                className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-unpaid-ink hover:bg-unpaid"
+              >
+                <TrashIcon className="h-3.5 w-3.5" /> Delete
+              </button>
+            </div>
+          </>,
+          document.body,
+        )}
+    </>
   );
 }
 
@@ -162,20 +212,28 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
 
   return (
     <div className="card">
-      <div className="flex flex-wrap gap-2 border-b border-border p-4">
-        {tabs.map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`rounded-full px-4 py-2 text-xs font-medium ${
-              filter === f
-                ? "bg-primary text-white"
-                : "border border-border text-ink-muted hover:bg-white/5"
-            }`}
-          >
-            {FILTER_LABELS[f]} ({filterCounts[f]})
-          </button>
-        ))}
+      {/* Title, export, and filters pinned together below the app
+          header while the entry list scrolls underneath. */}
+      <div className="sticky top-16 z-20 rounded-t-xl border-b border-border bg-card">
+        <div className="flex items-center justify-between gap-3 px-4 pt-4">
+          <h2 className="text-lg font-semibold text-ink">Ledger</h2>
+          {role === "admin" && <ExportCsvButton />}
+        </div>
+        <div className="flex gap-2 overflow-x-auto px-4 py-4">
+          {tabs.map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`shrink-0 rounded-full px-4 py-2 text-xs font-medium ${
+                filter === f
+                  ? "bg-primary text-white"
+                  : "border border-border text-ink-muted hover:bg-white/5"
+              }`}
+            >
+              {FILTER_LABELS[f]} ({filterCounts[f]})
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Mobile: stacked cards. A table crammed into a phone width just
@@ -240,7 +298,7 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
                 />
               ) : (
                 <tr key={entry.id} className={`border-b border-border ${statusBgClass(entry)}`}>
-                  <td className="whitespace-nowrap px-4 py-4 text-ink">{entry.date}</td>
+                  <td className="whitespace-nowrap px-4 py-4 font-medium text-ink">{entry.date}</td>
                   <td className="px-4 py-4 text-ink">
                     <CategoryTag category={entry.category} />
                   </td>
@@ -270,13 +328,8 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
                   )}
                   {role === "admin" && (
                     <td className="whitespace-nowrap px-4 py-4 text-right">
-                      <div className="flex justify-end gap-2">
-                        <IconButton onClick={() => setEditingId(entry.id)} variant="edit" label="Edit">
-                          <PencilIcon className="h-3.5 w-3.5" />
-                        </IconButton>
-                        <IconButton onClick={() => deleteEntry(entry.id)} variant="delete" label="Delete">
-                          <TrashIcon className="h-3.5 w-3.5" />
-                        </IconButton>
+                      <div className="flex justify-end">
+                        <RowMenu onEdit={() => setEditingId(entry.id)} onDelete={() => deleteEntry(entry.id)} />
                       </div>
                     </td>
                   )}
@@ -316,9 +369,11 @@ function EntryCard({
   return (
     <div className={`p-5 ${statusBgClass(entry)}`}>
       {/* Compact header: date · category, plus the status badge so the
-          state is visible without scanning the whole card. */}
-      <div className="flex items-center justify-between gap-2">
-        <span className="flex min-w-0 items-center gap-1.5 truncate text-xs text-ink-muted">
+          state is visible without scanning the whole card. Wraps
+          instead of truncating so a long category never gets cut
+          mid-word. */}
+      <div className="flex items-start justify-between gap-2">
+        <span className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-xs font-medium text-ink">
           {entry.date} · <CategoryTag category={entry.category} />
         </span>
         <StatusBadge entry={entry} showBadge={showBadge} />
@@ -341,13 +396,8 @@ function EntryCard({
       </div>
 
       {role === "admin" && (
-        <div className="mt-3 flex gap-2">
-          <IconButton onClick={onEdit} variant="edit" label="Edit" size="h-11 w-11">
-            <PencilIcon className="h-4 w-4" />
-          </IconButton>
-          <IconButton onClick={onDelete} variant="delete" label="Delete" size="h-11 w-11">
-            <TrashIcon className="h-4 w-4" />
-          </IconButton>
+        <div className="mt-3 flex justify-end">
+          <RowMenu onEdit={onEdit} onDelete={onDelete} />
         </div>
       )}
     </div>

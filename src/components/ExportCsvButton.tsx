@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { DownloadIcon } from "./icons";
 
 // The zip is assembled server-side in /api/export (CSV + the actual
 // receipt files, not just their names) since that's the only place
@@ -31,9 +32,11 @@ export function ExportCsvButton() {
     <button
       onClick={download}
       disabled={preparing}
-      className="rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-ink hover:bg-white/5 disabled:opacity-60"
+      title="Export backup (CSV + receipts)"
+      aria-label="Export backup (CSV + receipts)"
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border text-ink-muted hover:bg-white/5 hover:text-ink disabled:opacity-60"
     >
-      {preparing ? "Preparing…" : "Export backup (CSV + receipts)"}
+      <DownloadIcon className={`h-4 w-4 ${preparing ? "animate-pulse" : ""}`} />
     </button>
   );
 }

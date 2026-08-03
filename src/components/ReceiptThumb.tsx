@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { createPortal } from "react-dom";
+import { ReceiptLightbox } from "./ReceiptLightbox";
+import { FileIcon } from "./icons";
 
-// Real image preview for photo/scan receipts (tap to expand full-size,
-// via a portal so it's never clipped by an ancestor's layout — same
-// fix as the Mark Paid modal needed). True PDFs get a distinct icon
-// and just open in a new tab, since there's nothing to usefully
-// thumbnail.
+// Real image preview for photo/scan receipts; PDFs get a compact file
+// icon. Both open the same in-page lightbox on tap (see
+// ReceiptLightbox) rather than navigating anywhere.
 export function ReceiptThumb({
   signedUrl,
   isPdf,
@@ -23,15 +22,16 @@ export function ReceiptThumb({
 
   if (isPdf) {
     return (
-      <a
-        href={signedUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        title={name}
-        className={`flex ${size} items-center justify-center rounded border border-border bg-card-alt text-[10px] font-medium text-ink-muted`}
-      >
-        PDF
-      </a>
+      <>
+        <button
+          onClick={() => setOpen(true)}
+          title={name}
+          className={`flex ${size} items-center justify-center rounded border border-border bg-card-alt text-ink-muted hover:text-ink`}
+        >
+          <FileIcon className="h-5 w-5" />
+        </button>
+        {open && <ReceiptLightbox signedUrl={signedUrl} name={name} kind="pdf" onClose={() => setOpen(false)} />}
+      </>
     );
   }
 
@@ -45,23 +45,7 @@ export function ReceiptThumb({
           className={`${size} rounded border border-border object-cover`}
         />
       </button>
-      {open &&
-        typeof document !== "undefined" &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
-            onClick={() => setOpen(false)}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={signedUrl}
-              alt={name}
-              className="max-h-full max-w-full rounded shadow-xl"
-              onClick={(e) => e.stopPropagation()}
-            />
-          </div>,
-          document.body,
-        )}
+      {open && <ReceiptLightbox signedUrl={signedUrl} name={name} kind="image" onClose={() => setOpen(false)} />}
     </>
   );
 }

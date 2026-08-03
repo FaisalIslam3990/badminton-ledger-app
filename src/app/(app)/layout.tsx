@@ -14,8 +14,8 @@ export default async function AppLayout({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-b border-border bg-card shadow-[0_1px_0_rgba(0,0,0,0.4)]">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
+      <header className="sticky top-0 z-30 border-b border-border bg-card shadow-[0_1px_0_rgba(0,0,0,0.4)]">
+        <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4">
           <div className="flex items-center gap-6">
             <Link href="/" className="text-lg font-bold text-ink">
               Badminton Club

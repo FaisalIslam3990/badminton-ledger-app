@@ -4,9 +4,8 @@ import { SummaryPanel } from "@/components/SummaryPanel";
 import { GrantTimeline } from "@/components/GrantTimeline";
 import { ViewerSummary } from "@/components/ViewerSummary";
 import { LedgerTable } from "@/components/LedgerTable";
-import { ExportCsvButton } from "@/components/ExportCsvButton";
+import { AddEntryFab } from "@/components/AddEntryFab";
 import type { Entry } from "@/lib/summary";
-import Link from "next/link";
 
 export default async function LedgerPage() {
   const { role } = await getCurrentRole();
@@ -64,21 +63,8 @@ export default async function LedgerPage() {
       ) : (
         <ViewerSummary entries={rows} />
       )}
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-ink">Ledger</h2>
-        <div className="flex flex-wrap items-center gap-3">
-          {role === "admin" && <ExportCsvButton />}
-          {role === "admin" && (
-            <Link
-              href="/add"
-              className="rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-accent-ink hover:opacity-90"
-            >
-              + Add Entry
-            </Link>
-          )}
-        </div>
-      </div>
       <LedgerTable entries={ledgerRows} role={role} />
+      {role === "admin" && <AddEntryFab />}
     </div>
   );
 }
