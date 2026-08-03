@@ -145,7 +145,18 @@ function RowMenu({
       // rendering underneath a classic (non-overlay) scrollbar.
       const viewportWidth = document.documentElement.clientWidth;
       const left = Math.min(rect.left, viewportWidth - ROW_MENU_WIDTH - 8);
-      setCoords({ top: rect.bottom + 4, left: Math.max(left, 8) });
+
+      // The menu always opened downward from the button with no check
+      // for whether it actually fits before the bottom of the screen —
+      // for a row near the bottom of the visible viewport, that cut
+      // "Delete" off. Flip to open upward when there isn't room below.
+      const itemCount = 2 + (undo ? 1 : 0);
+      const estimatedHeight = itemCount * 40 + 8;
+      const viewportHeight = window.innerHeight;
+      const fitsBelow = rect.bottom + 4 + estimatedHeight <= viewportHeight - 8;
+      const top = fitsBelow ? rect.bottom + 4 : Math.max(rect.top - estimatedHeight - 4, 8);
+
+      setCoords({ top, left: Math.max(left, 8) });
     }
     setOpen(true);
   }
