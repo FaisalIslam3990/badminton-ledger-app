@@ -117,7 +117,7 @@ function entryActions(entry: Row, onChanged: () => void) {
 // optional and admin-only — it's the same Undo action that used to sit
 // inline next to the payment status, now folded in here so it's not a
 // second red-ish action competing with Delete for attention.
-const ROW_MENU_WIDTH = 144; // px, matches w-36
+const ROW_MENU_WIDTH = 192; // px, matches w-48 — wide enough that "Undo Payment"/"Undo Received" never wrap
 
 function RowMenu({
   onEdit,
@@ -176,7 +176,7 @@ function RowMenu({
           <>
             <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
             <div
-              className="card fixed z-40 w-36 p-1 text-sm"
+              className="card fixed z-40 w-48 p-1 text-sm"
               style={{ top: coords.top, left: coords.left }}
             >
               {undo && (
@@ -185,7 +185,7 @@ function RowMenu({
                     setOpen(false);
                     undo.onClick();
                   }}
-                  className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-pending-ink hover:bg-pending"
+                  className="flex w-full items-center gap-2 whitespace-nowrap rounded-lg px-2 py-2 text-left text-pending-ink hover:bg-pending"
                 >
                   <UndoIcon className="h-3.5 w-3.5" /> {undo.label}
                 </button>
@@ -195,7 +195,7 @@ function RowMenu({
                   setOpen(false);
                   onEdit();
                 }}
-                className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-ink hover:bg-white/5"
+                className="flex w-full items-center gap-2 whitespace-nowrap rounded-lg px-2 py-2 text-left text-ink hover:bg-white/5"
               >
                 <PencilIcon className="h-3.5 w-3.5" /> Edit
               </button>
@@ -204,7 +204,7 @@ function RowMenu({
                   setOpen(false);
                   onDelete();
                 }}
-                className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-unpaid-ink hover:bg-unpaid"
+                className="flex w-full items-center gap-2 whitespace-nowrap rounded-lg px-2 py-2 text-left text-unpaid-ink hover:bg-unpaid"
               >
                 <TrashIcon className="h-3.5 w-3.5" /> Delete
               </button>
