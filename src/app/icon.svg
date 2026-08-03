@@ -1,33 +1,48 @@
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <radialGradient id="bg" cx="50%" cy="32%" r="70%">
-      <stop offset="0%" stop-color="#16231a"/>
-      <stop offset="100%" stop-color="#0a0f0c"/>
+    <radialGradient id="bg" cx="42%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#182a1c"/>
+      <stop offset="100%" stop-color="#0a130d"/>
     </radialGradient>
-    <linearGradient id="cork" x1="15%" y1="10%" x2="85%" y2="95%">
-      <stop offset="0%" stop-color="#e4f9a8"/>
-      <stop offset="45%" stop-color="#b7e34a"/>
-      <stop offset="100%" stop-color="#7ea82e"/>
+    <linearGradient id="cork" x1="20%" y1="15%" x2="90%" y2="95%">
+      <stop offset="0%" stop-color="#d7ec8e"/>
+      <stop offset="50%" stop-color="#a9d24e"/>
+      <stop offset="100%" stop-color="#7ba930"/>
     </linearGradient>
-    <linearGradient id="feather" x1="50%" y1="0%" x2="50%" y2="100%">
-      <stop offset="0%" stop-color="#f2fbe9"/>
-      <stop offset="100%" stop-color="#cfe6bd"/>
+    <linearGradient id="feather" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#cdd6c8"/>
     </linearGradient>
   </defs>
 
   <rect width="512" height="512" rx="118" fill="url(#bg)"/>
 
-  <g fill="url(#feather)">
-    <path d="M256 236 C 194 168 152 112 128 54 C 146 100 178 168 224 244 Z"/>
-    <path d="M256 236 C 220 154 204 96 199 40 C 202 92 216 160 240 246 Z"/>
-    <path d="M256 236 C 292 154 308 96 313 40 C 310 92 296 160 272 246 Z"/>
-    <path d="M256 236 C 318 168 360 112 384 54 C 366 100 334 168 288 244 Z"/>
+  <g transform="translate(256 256) scale(1.18) translate(-292 -226) rotate(38 246 300)">
+    <!-- feathers, cascading lengths (outer ones shorter), fanned around the shared base point -->
+    <g transform="rotate(-26 246 300)">
+      <path d="M246 300 C 222 244 212 158 226 62 C 230 48 238 42 246 42 C 254 42 262 48 266 62 C 280 158 270 244 246 300 Z" fill="url(#feather)"/>
+      <path d="M246 300 C 236 244 232 158 240 66" fill="none" stroke="#9fae98" stroke-width="3" opacity="0.5"/>
+    </g>
+    <g transform="rotate(-9 246 300)">
+      <path d="M246 300 C 224 248 215 170 227 78 C 231 65 238 60 246 60 C 254 60 261 65 265 78 C 277 170 268 248 246 300 Z" fill="url(#feather)"/>
+      <path d="M246 300 C 237 248 233 170 240 82" fill="none" stroke="#9fae98" stroke-width="3" opacity="0.5"/>
+    </g>
+    <g transform="rotate(9 246 300)">
+      <path d="M246 300 C 226 252 218 182 228 95 C 232 83 238 78 246 78 C 254 78 260 83 264 95 C 274 182 266 252 246 300 Z" fill="url(#feather)"/>
+      <path d="M246 300 C 238 252 234 182 240 99" fill="none" stroke="#9fae98" stroke-width="3" opacity="0.5"/>
+    </g>
+    <g transform="rotate(26 246 300)">
+      <path d="M246 300 C 228 256 221 194 229 112 C 233 101 238 97 246 97 C 254 97 259 101 263 112 C 271 194 264 256 246 300 Z" fill="url(#feather)"/>
+      <path d="M246 300 C 239 256 235 194 240 116" fill="none" stroke="#9fae98" stroke-width="3" opacity="0.5"/>
+    </g>
+
+    <!-- bands: green (nearest feathers) -> red -> black (nearest ball) -->
+    <ellipse cx="246" cy="308" rx="54" ry="13" fill="#8fbf3a"/>
+    <ellipse cx="246" cy="323" rx="51" ry="12" fill="#e0492a"/>
+    <ellipse cx="246" cy="337" rx="49" ry="12" fill="#13201a"/>
+
+    <!-- cork ball -->
+    <circle cx="246" cy="374" r="60" fill="url(#cork)"/>
+    <circle cx="227" cy="355" r="17" fill="#eef7c9" opacity="0.5"/>
   </g>
-
-  <ellipse cx="256" cy="242" rx="40" ry="15" fill="#5c7838"/>
-
-  <circle cx="256" cy="269" r="33" fill="url(#cork)"/>
-  <circle cx="244" cy="257" r="10" fill="#f4ffe0" opacity="0.6"/>
-
-  <line x1="188" y1="358" x2="324" y2="358" stroke="#33422f" stroke-width="7" stroke-linecap="round"/>
 </svg>
