@@ -102,3 +102,12 @@ export function FileIcon({ className = "h-4 w-4" }: IconProps) {
     </svg>
   );
 }
+
+export function UndoIcon({ className = "h-4 w-4" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M8 7 4 11l4 4" />
+      <path d="M4 11h11a5 5 0 0 1 0 10h-1" />
+    </svg>
+  );
+}

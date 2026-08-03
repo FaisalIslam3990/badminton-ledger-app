@@ -10,7 +10,7 @@ import { todayLocalISODate, formatDateUK, formatDateTimeUK } from "@/lib/date";
 import { MarkPaidControl } from "./MarkPaidControl";
 import { ReceiptThumb } from "./ReceiptThumb";
 import { ExportCsvButton } from "./ExportCsvButton";
-import { DotsIcon, PencilIcon, TrashIcon } from "./icons";
+import { DotsIcon, PencilIcon, TrashIcon, UndoIcon } from "./icons";
 
 type Row = Entry & { receiptSignedUrl: string | null };
 
@@ -477,8 +477,11 @@ function StatusActions({
           <p className="text-[10px] text-ink-muted">confirmed {formatDateTimeUK(entry.received_marked_at)}</p>
         )}
         {role === "admin" && (
-          <button onClick={undoReceived} className="mt-0.5 min-h-6 text-[10px] text-ink-muted underline">
-            Undo
+          <button
+            onClick={undoReceived}
+            className="mt-0.5 flex min-h-6 items-center gap-1 text-[10px] font-medium text-unpaid-ink hover:underline"
+          >
+            <UndoIcon className="h-3 w-3" /> Undo
           </button>
         )}
       </div>
@@ -507,8 +510,8 @@ function StatusActions({
               Confirm Received
             </button>
           )}
-          <button onClick={undoSent} className="min-h-6 text-xs text-primary underline">
-            Undo
+          <button onClick={undoSent} className="flex min-h-6 items-center gap-1 text-xs font-medium text-unpaid-ink hover:underline">
+            <UndoIcon className="h-3.5 w-3.5" /> Undo
           </button>
         </div>
       </div>

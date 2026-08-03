@@ -52,6 +52,10 @@ body {
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: 16px;
+  /* Clips any child (e.g. the ledger's sticky sub-header) to this exact
+     rounded shape — without it, a child with its own slightly different
+     corner radius leaves a small notch where the two arcs don't match. */
+  overflow: hidden;
 }
 
 .amount {
