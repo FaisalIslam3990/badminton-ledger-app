@@ -139,8 +139,12 @@ function RowMenu({
       // runs off the right edge of the viewport — the button can be on
       // either side of a row (left on mobile cards, right in the
       // desktop table), so a fixed `right` or `left` offset alone isn't
-      // safe for both.
-      const left = Math.min(rect.left, window.innerWidth - ROW_MENU_WIDTH - 8);
+      // safe for both. clientWidth (not window.innerWidth, which
+      // includes the scrollbar's own width) is the actual visible
+      // content area — using innerWidth left the menu's last ~15px
+      // rendering underneath a classic (non-overlay) scrollbar.
+      const viewportWidth = document.documentElement.clientWidth;
+      const left = Math.min(rect.left, viewportWidth - ROW_MENU_WIDTH - 8);
       setCoords({ top: rect.bottom + 4, left: Math.max(left, 8) });
     }
     setOpen(true);
