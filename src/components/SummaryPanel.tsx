@@ -12,13 +12,17 @@ function StatTile({ label, value, tone }: { label: string; value: number; tone: 
     light: "bg-bg text-ink",
   }[tone];
   return (
-    <div className={`rounded-xl p-3 ${toneClass}`}>
+    <div className={`rounded-lg p-3 ${toneClass}`}>
       <p className="text-[10px] font-medium uppercase tracking-wide opacity-70">{label}</p>
       <p className="amount mt-0.5 text-sm">{gbp(value)}</p>
     </div>
   );
 }
 
+// Remaining to Spend is derived directly from the stat tiles below it
+// (Available Budget minus Total Spent), so the two are shown as one
+// continuous block — hero on top, its breakdown flush underneath —
+// rather than a floating tile above a separate row of stats.
 export function SummaryPanel({ entries }: { entries: Entry[] }) {
   const { totalReceived, totalSpent, remainingToSpend } = computeSummary(entries);
 
@@ -31,14 +35,14 @@ export function SummaryPanel({ entries }: { entries: Entry[] }) {
         <p className={`amount mt-1 text-4xl ${remainingToSpend < 0 ? "text-red-200" : ""}`}>
           {gbp(remainingToSpend)}
         </p>
-      </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
-        <StatTile label="Total Received" value={totalReceived} tone="received" />
-        <StatTile label="Total Spent" value={totalSpent} tone="dark" />
-        <StatTile label="Grant Awarded" value={GRANT_AWARDED} tone="light" />
-        <StatTile label="Compost Fee" value={COMPOST_LEAGUE_FEE} tone="light" />
-        <StatTile label="Available Budget" value={AVAILABLE_BUDGET} tone="light" />
+        <div className="mt-4 grid grid-cols-2 gap-3 border-t border-white/15 pt-4 sm:grid-cols-5">
+          <StatTile label="Total Received" value={totalReceived} tone="received" />
+          <StatTile label="Total Spent" value={totalSpent} tone="dark" />
+          <StatTile label="Grant Awarded" value={GRANT_AWARDED} tone="light" />
+          <StatTile label="Compost Fee" value={COMPOST_LEAGUE_FEE} tone="light" />
+          <StatTile label="Available Budget" value={AVAILABLE_BUDGET} tone="light" />
+        </div>
       </div>
     </div>
   );
