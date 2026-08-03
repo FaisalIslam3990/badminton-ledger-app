@@ -341,7 +341,12 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
 
       {/* Mobile: stacked cards. A table crammed into a phone width just
           forces horizontal scrolling and unreadable cells. */}
-      <div className="sm:hidden divide-y divide-border">
+      {/* overflow-hidden + rounded-b-2xl clip the last card's status
+          tint to the outer .card's bottom corners — this is a sibling
+          of the sticky sub-header above, not its ancestor, so it can't
+          reintroduce the sticky-positioning bug that overflow:hidden on
+          .card itself caused. */}
+      <div className="sm:hidden divide-y divide-border overflow-hidden rounded-b-2xl">
         {visibleEntries.map((entry) =>
           editingId === entry.id ? (
             <EditCard
@@ -375,7 +380,7 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
       </div>
 
       {/* Desktop / tablet: table. */}
-      <div className="hidden sm:block overflow-x-auto">
+      <div className="hidden sm:block overflow-x-auto rounded-b-2xl">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wide text-ink-muted">
