@@ -84,14 +84,24 @@ function CategoryTag({ category }: { category: string | null }) {
 // `overflow-x-auto` ancestor (same problem the receipt lightbox and
 // Mark Paid modal solve with a portal). Replaces the always-visible
 // Edit/Delete icon pair with a single tap target per row.
+const ROW_MENU_WIDTH = 144; // px, matches w-36
+
 function RowMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
   const [open, setOpen] = useState(false);
-  const [coords, setCoords] = useState<{ top: number; right: number } | null>(null);
+  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   function openMenu() {
     const rect = buttonRef.current?.getBoundingClientRect();
-    if (rect) setCoords({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+    if (rect) {
+      // Anchor to the button's left edge, but clamp so the menu never
+      // runs off the right edge of the viewport — the button can be on
+      // either side of a row (left on mobile cards, right in the
+      // desktop table), so a fixed `right` or `left` offset alone isn't
+      // safe for both.
+      const left = Math.min(rect.left, window.innerWidth - ROW_MENU_WIDTH - 8);
+      setCoords({ top: rect.bottom + 4, left: Math.max(left, 8) });
+    }
     setOpen(true);
   }
 
@@ -126,7 +136,7 @@ function RowMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => voi
             <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
             <div
               className="card fixed z-40 w-36 p-1 text-sm"
-              style={{ top: coords.top, right: coords.right }}
+              style={{ top: coords.top, left: coords.left }}
             >
               <button
                 onClick={() => {
@@ -219,7 +229,7 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
           <h2 className="text-lg font-semibold text-ink">Ledger</h2>
           <ExportCsvButton />
         </div>
-        <div className="flex gap-2 overflow-x-auto px-4 py-4">
+        <div className="scrollbar-hide flex gap-2 overflow-x-auto px-4 py-4">
           {tabs.map((f) => (
             <button
               key={f}

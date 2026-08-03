@@ -58,3 +58,13 @@ body {
   font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
+
+/* Scrollable filter-pill row: stays swipeable, just without a visible
+   scrollbar track eating up space and looking like a stray UI element. */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
