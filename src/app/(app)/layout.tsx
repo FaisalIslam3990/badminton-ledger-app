@@ -20,7 +20,7 @@ export default async function AppLayout({
             <Link href="/" className="text-lg font-bold text-ink">
               Badminton Club
             </Link>
-            <AppNav isAdmin={role === "admin"} />
+            <AppNav />
           </div>
           <AccountMenu
             identity={email ? displayIdentity(email) : "—"}

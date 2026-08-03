@@ -2,15 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ListIcon, PlusCircleIcon } from "./icons";
+import { ListIcon } from "./icons";
 
-export function AppNav({ isAdmin }: { isAdmin: boolean }) {
+export function AppNav() {
   const pathname = usePathname();
 
-  const items = [
-    { href: "/", label: "Ledger", icon: ListIcon },
-    ...(isAdmin ? [{ href: "/add", label: "Add Entry", icon: PlusCircleIcon }] : []),
-  ];
+  const items = [{ href: "/", label: "Ledger", icon: ListIcon }];
 
   return (
     <nav className="flex gap-2">
