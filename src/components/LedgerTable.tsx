@@ -224,7 +224,10 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
     <div className="card">
       {/* Title, export, and filters pinned together below the app
           header while the entry list scrolls underneath. */}
-      <div className="sticky top-16 z-20 rounded-t-xl border-b border-border bg-card">
+      {/* rounded-t-2xl (16px) matches .card's own border-radius exactly —
+          rounded-t-xl (12px) was slightly smaller, leaving a notch where
+          the two arcs didn't line up at each top corner. */}
+      <div className="sticky top-16 z-20 rounded-t-2xl border-b border-border bg-card">
         <div className="flex items-center justify-between gap-3 px-4 pt-4">
           <h2 className="text-lg font-semibold text-ink">Ledger</h2>
           <ExportCsvButton />
