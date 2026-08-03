@@ -1,0 +1,33 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="32%" r="70%">
+      <stop offset="0%" stop-color="#16231a"/>
+      <stop offset="100%" stop-color="#0a0f0c"/>
+    </radialGradient>
+    <linearGradient id="cork" x1="15%" y1="10%" x2="85%" y2="95%">
+      <stop offset="0%" stop-color="#e4f9a8"/>
+      <stop offset="45%" stop-color="#b7e34a"/>
+      <stop offset="100%" stop-color="#7ea82e"/>
+    </linearGradient>
+    <linearGradient id="feather" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#f2fbe9"/>
+      <stop offset="100%" stop-color="#cfe6bd"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="118" fill="url(#bg)"/>
+
+  <g fill="url(#feather)">
+    <path d="M256 236 C 194 168 152 112 128 54 C 146 100 178 168 224 244 Z"/>
+    <path d="M256 236 C 220 154 204 96 199 40 C 202 92 216 160 240 246 Z"/>
+    <path d="M256 236 C 292 154 308 96 313 40 C 310 92 296 160 272 246 Z"/>
+    <path d="M256 236 C 318 168 360 112 384 54 C 366 100 334 168 288 244 Z"/>
+  </g>
+
+  <ellipse cx="256" cy="242" rx="40" ry="15" fill="#5c7838"/>
+
+  <circle cx="256" cy="269" r="33" fill="url(#cork)"/>
+  <circle cx="244" cy="257" r="10" fill="#f4ffe0" opacity="0.6"/>
+
+  <line x1="188" y1="358" x2="324" y2="358" stroke="#33422f" stroke-width="7" stroke-linecap="round"/>
+</svg>
