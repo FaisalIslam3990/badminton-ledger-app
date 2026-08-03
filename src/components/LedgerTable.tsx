@@ -80,13 +80,54 @@ function CategoryTag({ category }: { category: string | null }) {
   );
 }
 
+// Shared by StatusActions and the row menu's admin-only Undo item, so
+// there's one place that knows how to patch an entry's payment state.
+function entryActions(entry: Row, onChanged: () => void) {
+  async function patch(body: Record<string, unknown>) {
+    await fetch(`/api/entries/${entry.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    onChanged();
+  }
+
+  return {
+    async markSent(paidAt: string, reference: string) {
+      await patch({ paid: true, paid_at: paidAt, payment_reference: reference || null });
+    },
+    async undoSent() {
+      if (!confirm("Undo this payment? This clears the payment date/reference.")) return;
+      await patch({ paid: false, paid_at: null, payment_reference: null });
+    },
+    async confirmReceived() {
+      await patch({ received: true, received_at: todayLocalISODate() });
+    },
+    async undoReceived() {
+      if (!confirm("Undo confirming this as received?")) return;
+      await patch({ received: false, received_at: null });
+    },
+  };
+}
+
 // Anchored, portal-rendered so it's never clipped by the table's
 // `overflow-x-auto` ancestor (same problem the receipt lightbox and
 // Mark Paid modal solve with a portal). Replaces the always-visible
-// Edit/Delete icon pair with a single tap target per row.
+// Edit/Delete icon pair with a single tap target per row. `undo` is
+// optional and admin-only — it's the same Undo action that used to sit
+// inline next to the payment status, now folded in here so it's not a
+// second red-ish action competing with Delete for attention.
 const ROW_MENU_WIDTH = 144; // px, matches w-36
 
-function RowMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
+function RowMenu({
+  onEdit,
+  onDelete,
+  undo,
+}: {
+  onEdit: () => void;
+  onDelete: () => void;
+  undo?: { label: string; onClick: () => void };
+}) {
   const [open, setOpen] = useState(false);
   const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -138,6 +179,17 @@ function RowMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => voi
               className="card fixed z-40 w-36 p-1 text-sm"
               style={{ top: coords.top, left: coords.left }}
             >
+              {undo && (
+                <button
+                  onClick={() => {
+                    setOpen(false);
+                    undo.onClick();
+                  }}
+                  className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-pending-ink hover:bg-pending"
+                >
+                  <UndoIcon className="h-3.5 w-3.5" /> {undo.label}
+                </button>
+              )}
               <button
                 onClick={() => {
                   setOpen(false);
@@ -162,6 +214,29 @@ function RowMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => voi
         )}
     </>
   );
+}
+
+// Wraps RowMenu with the admin-only Undo item computed from the entry's
+// current state, so neither call site (mobile card, desktop row) has to
+// duplicate that logic.
+function AdminRowMenu({
+  entry,
+  onEdit,
+  onDelete,
+  onChanged,
+}: {
+  entry: Row;
+  onEdit: () => void;
+  onDelete: () => void;
+  onChanged: () => void;
+}) {
+  const { undoSent, undoReceived } = entryActions(entry, onChanged);
+  const undo = entry.received
+    ? { label: "Undo Received", onClick: undoReceived }
+    : entry.paid
+      ? { label: "Undo Payment", onClick: undoSent }
+      : undefined;
+  return <RowMenu onEdit={onEdit} onDelete={onDelete} undo={undo} />;
 }
 
 export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
@@ -344,7 +419,12 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
                   {role === "admin" && (
                     <td className="whitespace-nowrap px-4 py-4 text-right">
                       <div className="flex justify-end">
-                        <RowMenu onEdit={() => setEditingId(entry.id)} onDelete={() => deleteEntry(entry.id)} />
+                        <AdminRowMenu
+                          entry={entry}
+                          onEdit={() => setEditingId(entry.id)}
+                          onDelete={() => deleteEntry(entry.id)}
+                          onChanged={() => router.refresh()}
+                        />
                       </div>
                     </td>
                   )}
@@ -398,7 +478,9 @@ function EntryCard({
         </span>
         <div className="flex shrink-0 items-center gap-2">
           <StatusBadge entry={entry} showBadge={showBadge} />
-          {role === "admin" && <RowMenu onEdit={onEdit} onDelete={onDelete} />}
+          {role === "admin" && (
+            <AdminRowMenu entry={entry} onEdit={onEdit} onDelete={onDelete} onChanged={onChanged} />
+          )}
         </div>
       </div>
 
@@ -445,47 +527,18 @@ function StatusActions({
   filter: PaidFilter;
   onChanged: () => void;
 }) {
-  async function patch(body: Record<string, unknown>) {
-    await fetch(`/api/entries/${entry.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    onChanged();
-  }
-
-  async function markSent(paidAt: string, reference: string) {
-    await patch({ paid: true, paid_at: paidAt, payment_reference: reference || null });
-  }
-
-  async function undoSent() {
-    if (!confirm("Undo this payment? This clears the payment date/reference.")) return;
-    await patch({ paid: false, paid_at: null, payment_reference: null });
-  }
-
-  async function confirmReceived() {
-    await patch({ received: true, received_at: todayLocalISODate() });
-  }
-
-  async function undoReceived() {
-    if (!confirm("Undo confirming this as received?")) return;
-    await patch({ received: false, received_at: null });
-  }
+  const { markSent, undoSent, confirmReceived } = entryActions(entry, onChanged);
 
   if (entry.received) {
+    // Admin's Undo for this state lives in the row menu (see
+    // AdminRowMenu) instead of inline here — viewer never reaches this
+    // branch's undo since only admin can confirm Received in the first
+    // place, and she has no row menu to put an inline one next to.
     return (
       <div>
         <p className="text-xs text-ink-muted">{entry.received_at ? formatDateUK(entry.received_at) : ""}</p>
         {entry.received_marked_at && (
           <p className="text-[10px] text-ink-muted">confirmed {formatDateTimeUK(entry.received_marked_at)}</p>
-        )}
-        {role === "admin" && (
-          <button
-            onClick={undoReceived}
-            className="mt-0.5 flex min-h-6 items-center gap-1 text-[10px] font-medium text-unpaid-ink hover:underline"
-          >
-            <UndoIcon className="h-3 w-3" /> Undo
-          </button>
         )}
       </div>
     );
@@ -513,9 +566,14 @@ function StatusActions({
               Confirm Received
             </button>
           )}
-          <button onClick={undoSent} className="flex min-h-6 items-center gap-1 text-xs font-medium text-unpaid-ink hover:underline">
-            <UndoIcon className="h-3.5 w-3.5" /> Undo
-          </button>
+          {/* Admin's Undo for this state lives in the row menu instead
+              (see AdminRowMenu) — viewer has no row menu, so hers stays
+              inline. */}
+          {role === "viewer" && (
+            <button onClick={undoSent} className="flex min-h-6 items-center gap-1 text-xs font-medium text-unpaid-ink hover:underline">
+              <UndoIcon className="h-3.5 w-3.5" /> Undo
+            </button>
+          )}
         </div>
       </div>
     );
