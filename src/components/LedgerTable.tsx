@@ -217,7 +217,7 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
       <div className="sticky top-16 z-20 rounded-t-xl border-b border-border bg-card">
         <div className="flex items-center justify-between gap-3 px-4 pt-4">
           <h2 className="text-lg font-semibold text-ink">Ledger</h2>
-          {role === "admin" && <ExportCsvButton />}
+          <ExportCsvButton />
         </div>
         <div className="flex gap-2 overflow-x-auto px-4 py-4">
           {tabs.map((f) => (
@@ -255,6 +255,7 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
               key={entry.id}
               entry={entry}
               role={role}
+              filter={filter}
               showBadge={showBadge}
               onEdit={() => setEditingId(entry.id)}
               onDelete={() => deleteEntry(entry.id)}
@@ -321,6 +322,7 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
                       <StatusCell
                         entry={entry}
                         role={role}
+                        filter={filter}
                         showBadge={showBadge}
                         onChanged={() => router.refresh()}
                       />
@@ -354,6 +356,7 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
 function EntryCard({
   entry,
   role,
+  filter,
   showBadge,
   onEdit,
   onDelete,
@@ -361,6 +364,7 @@ function EntryCard({
 }: {
   entry: Row;
   role: Role;
+  filter: PaidFilter;
   showBadge: boolean;
   onEdit: () => void;
   onDelete: () => void;
@@ -392,11 +396,14 @@ function EntryCard({
         ) : (
           <span className="text-xs text-ink-muted">No receipt</span>
         )}
-        <StatusActions entry={entry} role={role} onChanged={onChanged} />
+        <StatusActions entry={entry} role={role} filter={filter} onChanged={onChanged} />
       </div>
 
       {role === "admin" && (
-        <div className="mt-3 flex justify-end">
+        // Left-aligned deliberately: the fixed Add Entry FAB sits
+        // bottom-right, and a right-aligned menu button here would
+        // scroll in and out from directly underneath it.
+        <div className="mt-3 flex justify-start">
           <RowMenu onEdit={onEdit} onDelete={onDelete} />
         </div>
       )}
@@ -417,7 +424,17 @@ function StatusBadge({ entry, showBadge }: { entry: Row; showBadge: boolean }) {
 // claim sent (date + optional reference); only he can confirm it landed.
 // Once received, the row is locked — neither the UI here nor the DB
 // trigger let a viewer touch it again.
-function StatusActions({ entry, role, onChanged }: { entry: Row; role: Role; onChanged: () => void }) {
+function StatusActions({
+  entry,
+  role,
+  filter,
+  onChanged,
+}: {
+  entry: Row;
+  role: Role;
+  filter: PaidFilter;
+  onChanged: () => void;
+}) {
   async function patch(body: Record<string, unknown>) {
     await fetch(`/api/entries/${entry.id}`, {
       method: "PATCH",
@@ -491,7 +508,9 @@ function StatusActions({ entry, role, onChanged }: { entry: Row; role: Role; onC
     );
   }
 
-  if (role === "viewer") {
+  // Only under Unpaid — under All, the same button is one tab away and
+  // just clutters a view that's meant to be a full read of everything.
+  if (role === "viewer" && filter === "unpaid") {
     return (
       <MarkPaidControl
         label="Mark Paid"
@@ -509,18 +528,20 @@ function StatusActions({ entry, role, onChanged }: { entry: Row; role: Role; onC
 function StatusCell({
   entry,
   role,
+  filter,
   showBadge,
   onChanged,
 }: {
   entry: Row;
   role: Role;
+  filter: PaidFilter;
   showBadge: boolean;
   onChanged: () => void;
 }) {
   return (
     <div className="space-y-1.5">
       <StatusBadge entry={entry} showBadge={showBadge} />
-      <StatusActions entry={entry} role={role} onChanged={onChanged} />
+      <StatusActions entry={entry} role={role} filter={filter} onChanged={onChanged} />
     </div>
   );
 }

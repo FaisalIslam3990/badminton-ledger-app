@@ -64,8 +64,11 @@ function uniqueFileName(baseName: string, used: Set<string>) {
 }
 
 export async function GET() {
+  // Any signed-in role can export — viewers can read every entries row
+  // already (entries_viewer_select), so this just matches what they can
+  // already see, not a new permission.
   const { role } = await getCurrentRole();
-  if (role !== "admin") {
+  if (!role) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
