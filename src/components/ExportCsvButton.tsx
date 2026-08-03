@@ -1,59 +1,39 @@
 "use client";
 
-import type { Entry } from "@/lib/summary";
+import { useState } from "react";
 
-function csvEscape(value: string) {
-  if (/[",\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
-  return value;
-}
+// The zip is assembled server-side in /api/export (CSV + the actual
+// receipt files, not just their names) since that's the only place
+// with access to Storage-authenticated downloads for every entry.
+export function ExportCsvButton() {
+  const [preparing, setPreparing] = useState(false);
 
-export function ExportCsvButton({ entries }: { entries: Entry[] }) {
-  function download() {
-    const header = [
-      "Date",
-      "Type",
-      "Category",
-      "Vendor",
-      "Note",
-      "Amount",
-      "Paid (Sent)",
-      "Paid Date",
-      "Payment Reference",
-      "Received (Confirmed)",
-      "Received Date",
-      "Receipt File",
-    ];
-    const rows = entries.map((e) => [
-      e.date,
-      e.type,
-      e.category ?? "",
-      e.vendor ?? "",
-      e.note ?? "",
-      e.amount.toFixed(2),
-      e.paid ? "yes" : "no",
-      e.paid_at ?? "",
-      e.payment_reference ?? "",
-      e.received ? "yes" : "no",
-      e.received_at ?? "",
-      e.receipt_file_name ?? "",
-    ]);
-
-    const csv = [header, ...rows].map((row) => row.map((v) => csvEscape(String(v))).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `badminton-ledger-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  async function download() {
+    setPreparing(true);
+    try {
+      const res = await fetch("/api/export");
+      if (!res.ok) throw new Error("Export failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `badminton-ledger-${new Date().toISOString().slice(0, 10)}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert("Export failed. Please try again.");
+    } finally {
+      setPreparing(false);
+    }
   }
 
   return (
     <button
       onClick={download}
-      className="rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-ink hover:bg-white/5"
+      disabled={preparing}
+      className="rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-ink hover:bg-white/5 disabled:opacity-60"
     >
-      Export CSV backup
+      {preparing ? "Preparing…" : "Export backup (CSV + receipts)"}
     </button>
   );
 }

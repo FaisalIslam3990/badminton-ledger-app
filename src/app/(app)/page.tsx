@@ -67,7 +67,7 @@ export default async function LedgerPage() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-semibold text-ink">Ledger</h2>
         <div className="flex flex-wrap items-center gap-3">
-          {role === "admin" && <ExportCsvButton entries={rows} />}
+          {role === "admin" && <ExportCsvButton />}
           {role === "admin" && (
             <Link
               href="/add"
