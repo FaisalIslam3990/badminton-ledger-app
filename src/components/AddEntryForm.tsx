@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PRESET_CATEGORIES } from "@/lib/categories";
 import { todayLocalISODate } from "@/lib/date";
+import { takePendingReceipt } from "@/lib/pendingReceipt";
 
 type ExtractedFields = {
   date: string;
@@ -27,10 +28,7 @@ export function AddEntryForm() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const selected = e.target.files?.[0];
-    if (!selected) return;
-
+  async function processFile(selected: File) {
     setFile(selected);
     setPreviewUrl(selected.type === "application/pdf" ? null : URL.createObjectURL(selected));
     setFields(null);
@@ -55,6 +53,21 @@ export function AddEntryForm() {
     } finally {
       setExtracting(false);
     }
+  }
+
+  // If the Add Entry FAB already picked a file (native picker, no
+  // "Choose file" tap needed here), pick up right where that left off.
+  // Falls through to the manual file input below when there isn't one
+  // — e.g. a direct visit to this page.
+  useEffect(() => {
+    const pending = takePendingReceipt();
+    if (!pending) return;
+    queueMicrotask(() => processFile(pending));
+  }, []);
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const selected = e.target.files?.[0];
+    if (selected) processFile(selected);
   }
 
   async function handleSubmit(e: React.FormEvent) {
