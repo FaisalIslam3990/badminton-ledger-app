@@ -382,15 +382,21 @@ function EntryCard({
 }) {
   return (
     <div className={`p-5 ${statusBgClass(entry)}`}>
-      {/* Compact header: date · category, plus the status badge so the
-          state is visible without scanning the whole card. Wraps
-          instead of truncating so a long category never gets cut
-          mid-word. */}
+      {/* Compact header: date · category, plus the status badge and row
+          menu so both are visible without scanning the whole card. The
+          row menu lives up here rather than in its own row at the
+          bottom — a dedicated bottom row for one small button left the
+          rest of that row's width empty, and put it right where the
+          fixed Add Entry FAB sits as each card scrolls past. Category
+          wraps instead of truncating so a long one never cuts mid-word. */}
       <div className="flex items-start justify-between gap-2">
         <span className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-xs font-medium text-ink">
           {entry.date} · <CategoryTag category={entry.category} />
         </span>
-        <StatusBadge entry={entry} showBadge={showBadge} />
+        <div className="flex shrink-0 items-center gap-2">
+          <StatusBadge entry={entry} showBadge={showBadge} />
+          {role === "admin" && <RowMenu onEdit={onEdit} onDelete={onDelete} />}
+        </div>
       </div>
 
       <p className="mt-2 text-ink">{entry.note ?? "—"}</p>
@@ -408,15 +414,6 @@ function EntryCard({
         )}
         <StatusActions entry={entry} role={role} filter={filter} onChanged={onChanged} />
       </div>
-
-      {role === "admin" && (
-        // Left-aligned deliberately: the fixed Add Entry FAB sits
-        // bottom-right, and a right-aligned menu button here would
-        // scroll in and out from directly underneath it.
-        <div className="mt-3 flex justify-start">
-          <RowMenu onEdit={onEdit} onDelete={onDelete} />
-        </div>
-      )}
     </div>
   );
 }
