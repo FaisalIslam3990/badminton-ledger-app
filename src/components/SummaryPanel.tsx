@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { AVAILABLE_BUDGET, COMPOST_LEAGUE_FEE, GRANT_AWARDED } from "@/lib/budget";
 import { computeSummary, type Entry } from "@/lib/summary";
 import { GrantBreakdownToggle } from "@/components/GrantBreakdown";
 import { RemainingAmount } from "@/components/RemainingAmount";
+import { useAmountVisibility } from "@/components/AmountVisibility";
 
 const MASK = "••••••";
 
@@ -45,11 +45,11 @@ function StatTile({
 // picture (what's gone out, what's been paid back), rather than as
 // disconnected tiles. Grant/Compost/Available stay as a small caption:
 // the arithmetic that gets you to the meter's ceiling, not the headline.
-// The eye toggle next to the headline gates every money figure on the
-// card, not just itself — this is meant to be safe to leave open on a
-// shared screen with the numbers masked by default.
+// The eye toggle next to the headline gates the budget figures (shared
+// with GrantTimeline via AmountVisibility context). Owed to You stays
+// unmasked always — it's the number Caroline needs at a glance.
 export function SummaryPanel({ entries }: { entries: Entry[] }) {
-  const [visible, setVisible] = useState(false);
+  const { visible, toggle } = useAmountVisibility();
   const { totalReceived, totalSpent, remainingToSpend } = computeSummary(entries);
   const spentRatio = totalSpent / AVAILABLE_BUDGET;
   const overspent = spentRatio > 1;
@@ -66,7 +66,7 @@ export function SummaryPanel({ entries }: { entries: Entry[] }) {
           amount={gbp(remainingToSpend)}
           negative={remainingToSpend < 0}
           visible={visible}
-          onToggle={() => setVisible((v) => !v)}
+          onToggle={toggle}
         />
 
         <div className="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-white/15">
@@ -107,7 +107,7 @@ export function SummaryPanel({ entries }: { entries: Entry[] }) {
         </div>
         <span className="amount hidden text-lg text-ink-muted sm:flex sm:items-center">=</span>
 
-        <StatTile label="Owed to You" value={owedToYou} tone="unpaid" visible={visible} />
+        <StatTile label="Owed to You" value={owedToYou} tone="unpaid" visible />
       </div>
     </div>
   );

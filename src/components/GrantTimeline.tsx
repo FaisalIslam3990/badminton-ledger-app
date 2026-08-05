@@ -1,4 +1,9 @@
+"use client";
+
 import { GRANT_MILESTONES, PROJECT_DEADLINE } from "@/lib/budget";
+import { useAmountVisibility } from "@/components/AmountVisibility";
+
+const MASK = "••••••";
 
 function gbp(n: number) {
   return n.toLocaleString("en-GB", { style: "currency", currency: "GBP" });
@@ -36,6 +41,7 @@ function hasBegun(iso: string) {
 }
 
 export function GrantTimeline() {
+  const { visible } = useAmountVisibility();
   const cumulativeAmounts = GRANT_MILESTONES.reduce<number[]>((acc, m, i) => {
     acc.push((acc[i - 1] ?? 0) + m.amount);
     return acc;
@@ -91,7 +97,7 @@ export function GrantTimeline() {
                 )}
               </div>
               <span className={`amount shrink-0 text-sm ${received ? "text-ink-muted" : "text-ink"}`}>
-                {gbp(m.cumulative)}
+                {visible ? gbp(m.cumulative) : MASK}
               </span>
             </div>
           );

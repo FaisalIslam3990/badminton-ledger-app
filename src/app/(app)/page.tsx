@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentRole } from "@/lib/roles";
 import { SummaryPanel } from "@/components/SummaryPanel";
 import { GrantTimeline } from "@/components/GrantTimeline";
+import { AmountVisibilityProvider } from "@/components/AmountVisibility";
 import { ViewerSummary } from "@/components/ViewerSummary";
 import { LedgerTable } from "@/components/LedgerTable";
 import { AddEntryFab } from "@/components/AddEntryFab";
@@ -52,8 +53,10 @@ export default async function LedgerPage() {
     <div>
       {role === "admin" ? (
         <>
-          <SummaryPanel entries={rows} />
-          <GrantTimeline />
+          <AmountVisibilityProvider>
+            <SummaryPanel entries={rows} />
+            <GrantTimeline />
+          </AmountVisibilityProvider>
           {pendingConfirmCount > 0 && (
             <p className="mb-4 rounded-lg bg-pending px-4 py-2 text-sm font-medium text-pending-ink">
               {pendingConfirmCount} payment{pendingConfirmCount === 1 ? "" : "s"} awaiting your confirmation
