@@ -477,36 +477,39 @@ function EntryCard({
   onChanged: () => void;
 }) {
   return (
-    <div className={`p-4 ${statusBgClass(entry)}`}>
+    <div className={`p-3 ${statusBgClass(entry)}`}>
       {/* Leading thumbnail + a two-line text column reads leaner on a
           phone than stacking everything vertically — the receipt icon
           doubles as a visual anchor so the eye doesn't have to parse a
           wall of stacked lines per row. The status badge + row menu sit
           in their own trailing column, top-aligned so they read next to
-          the note (the busiest line) rather than the date. */}
-      <div className="flex items-start gap-3">
+          the note (the busiest line) rather than the date. Sizes here
+          are deliberately small (11-width thumb, text-sm note) — every
+          extra pixel given to the side columns is a pixel taken from the
+          note, which is the one field long enough to actually wrap. */}
+      <div className="flex items-start gap-2.5">
         {entry.receiptSignedUrl ? (
           <ReceiptThumb
             signedUrl={entry.receiptSignedUrl}
             isPdf={isPdfReceipt(entry)}
             name={entry.receipt_file_name ?? "Receipt"}
-            size="h-14 w-14"
+            size="h-11 w-11"
           />
         ) : (
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded border border-border bg-card-alt text-ink-muted/50">
-            <FileIcon className="h-5 w-5" />
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded border border-border bg-card-alt text-ink-muted/50">
+            <FileIcon className="h-4 w-4" />
           </div>
         )}
 
         <div className="min-w-0 flex-1">
-          <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-ink-muted">
+          <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-ink-muted">
             {entry.date} · <CategoryTag category={entry.category} />
           </p>
-          <p className="mt-0.5 font-semibold text-ink">{entry.note ?? "—"}</p>
-          <p className="amount mt-0.5 text-lg text-ink">{gbp(entry.amount)}</p>
+          <p className="mt-0.5 text-sm font-semibold leading-snug text-ink">{entry.note ?? "—"}</p>
+          <p className="amount mt-0.5 text-base text-ink">{gbp(entry.amount)}</p>
         </div>
 
-        <div className="flex shrink-0 flex-col items-end gap-2">
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
           <StatusBadge entry={entry} showBadge={showBadge} />
           {role === "admin" && (
             <AdminRowMenu entry={entry} onEdit={onEdit} onDelete={onDelete} onChanged={onChanged} />
@@ -514,7 +517,7 @@ function EntryCard({
         </div>
       </div>
 
-      <div className="mt-3 pl-[68px]">
+      <div className="mt-2 pl-[54px]">
         <StatusActions entry={entry} role={role} filter={filter} onChanged={onChanged} />
       </div>
     </div>
