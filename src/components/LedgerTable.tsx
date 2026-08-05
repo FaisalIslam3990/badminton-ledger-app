@@ -476,6 +476,13 @@ function EntryCard({
   onDelete: () => void;
   onChanged: () => void;
 }) {
+  // Under Unpaid, an unpaid entry has nothing else in the trailing
+  // column (no badge — it's implied by the filter — and viewers have no
+  // row menu), so that column was sitting empty while Mark Paid took a
+  // whole extra row below. Move it up there instead of leaving it below.
+  const showInlineMarkPaid = role === "viewer" && filter === "unpaid" && !entry.paid && !entry.received;
+  const { markSent } = entryActions(entry, onChanged);
+
   return (
     <div className={`p-3 ${statusBgClass(entry)}`}>
       {/* Leading thumbnail + a two-line text column reads leaner on a
@@ -510,16 +517,28 @@ function EntryCard({
         </div>
 
         <div className="flex shrink-0 flex-col items-end gap-1.5">
-          <StatusBadge entry={entry} showBadge={showBadge} />
-          {role === "admin" && (
-            <AdminRowMenu entry={entry} onEdit={onEdit} onDelete={onDelete} onChanged={onChanged} />
+          {showInlineMarkPaid ? (
+            <MarkPaidControl
+              label="Mark Paid"
+              buttonClassName="min-h-9 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-dark"
+              onConfirm={markSent}
+            />
+          ) : (
+            <>
+              <StatusBadge entry={entry} showBadge={showBadge} />
+              {role === "admin" && (
+                <AdminRowMenu entry={entry} onEdit={onEdit} onDelete={onDelete} onChanged={onChanged} />
+              )}
+            </>
           )}
         </div>
       </div>
 
-      <div className="mt-2 pl-[54px]">
-        <StatusActions entry={entry} role={role} filter={filter} onChanged={onChanged} />
-      </div>
+      {!showInlineMarkPaid && (
+        <div className="mt-2 pl-[54px]">
+          <StatusActions entry={entry} role={role} filter={filter} onChanged={onChanged} />
+        </div>
+      )}
     </div>
   );
 }
