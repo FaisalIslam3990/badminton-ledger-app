@@ -1,13 +1,28 @@
+"use client";
+
+import { useState } from "react";
 import { AVAILABLE_BUDGET, COMPOST_LEAGUE_FEE, GRANT_AWARDED } from "@/lib/budget";
 import { computeSummary, type Entry } from "@/lib/summary";
 import { GrantBreakdownToggle } from "@/components/GrantBreakdown";
 import { RemainingAmount } from "@/components/RemainingAmount";
 
+const MASK = "••••••";
+
 function gbp(n: number) {
   return n.toLocaleString("en-GB", { style: "currency", currency: "GBP" });
 }
 
-function StatTile({ label, value, tone }: { label: string; value: number; tone: "received" | "dark" | "unpaid" }) {
+function StatTile({
+  label,
+  value,
+  tone,
+  visible,
+}: {
+  label: string;
+  value: number;
+  tone: "received" | "dark" | "unpaid";
+  visible: boolean;
+}) {
   const toneClass = {
     received: "bg-received text-received-ink",
     dark: "bg-card-alt text-ink",
@@ -19,7 +34,7 @@ function StatTile({ label, value, tone }: { label: string; value: number; tone: 
         {tone === "unpaid" && <span className="h-1.5 w-1.5 rounded-full bg-unpaid-ink" />}
         {label}
       </p>
-      <p className="amount mt-0.5 text-lg">{gbp(value)}</p>
+      <p className="amount mt-0.5 text-lg">{visible ? gbp(value) : MASK}</p>
     </div>
   );
 }
@@ -30,7 +45,11 @@ function StatTile({ label, value, tone }: { label: string; value: number; tone: 
 // picture (what's gone out, what's been paid back), rather than as
 // disconnected tiles. Grant/Compost/Available stay as a small caption:
 // the arithmetic that gets you to the meter's ceiling, not the headline.
+// The eye toggle next to the headline gates every money figure on the
+// card, not just itself — this is meant to be safe to leave open on a
+// shared screen with the numbers masked by default.
 export function SummaryPanel({ entries }: { entries: Entry[] }) {
+  const [visible, setVisible] = useState(false);
   const { totalReceived, totalSpent, remainingToSpend } = computeSummary(entries);
   const spentRatio = totalSpent / AVAILABLE_BUDGET;
   const overspent = spentRatio > 1;
@@ -43,7 +62,12 @@ export function SummaryPanel({ entries }: { entries: Entry[] }) {
 
       <div className="rounded-xl bg-primary p-6 text-white">
         <p className="text-xs font-medium uppercase tracking-wide text-white/80">Remaining to Spend</p>
-        <RemainingAmount amount={gbp(remainingToSpend)} negative={remainingToSpend < 0} />
+        <RemainingAmount
+          amount={gbp(remainingToSpend)}
+          negative={remainingToSpend < 0}
+          visible={visible}
+          onToggle={() => setVisible((v) => !v)}
+        />
 
         <div className="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-white/15">
           <div
@@ -51,18 +75,24 @@ export function SummaryPanel({ entries }: { entries: Entry[] }) {
             style={{ width: `${meterWidth}%` }}
           />
         </div>
-        <p className="mt-1.5 text-[11px] text-white/70">{gbp(AVAILABLE_BUDGET)} available</p>
+        <p className="mt-1.5 text-[11px] text-white/70">
+          From {visible ? gbp(AVAILABLE_BUDGET) : MASK} available
+        </p>
 
         <GrantBreakdownToggle
-          breakdown={`Grant ${gbp(GRANT_AWARDED)} − Compost Fee ${gbp(COMPOST_LEAGUE_FEE)} = Available ${gbp(AVAILABLE_BUDGET)}`}
+          breakdown={
+            visible
+              ? `Grant ${gbp(GRANT_AWARDED)} − Compost Fee ${gbp(COMPOST_LEAGUE_FEE)} = Available ${gbp(AVAILABLE_BUDGET)}`
+              : `Grant ${MASK} − Compost Fee ${MASK} = Available ${MASK}`
+          }
         />
       </div>
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-stretch">
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:contents">
-          <StatTile label="Total Spent" value={totalSpent} tone="dark" />
+          <StatTile label="Total Spent" value={totalSpent} tone="dark" visible={visible} />
           <span className="amount flex items-center justify-center text-lg text-ink-muted">−</span>
-          <StatTile label="Total Received" value={totalReceived} tone="received" />
+          <StatTile label="Total Received" value={totalReceived} tone="received" visible={visible} />
         </div>
 
         <div className="sm:hidden">
@@ -77,7 +107,7 @@ export function SummaryPanel({ entries }: { entries: Entry[] }) {
         </div>
         <span className="amount hidden text-lg text-ink-muted sm:flex sm:items-center">=</span>
 
-        <StatTile label="Owed to You" value={owedToYou} tone="unpaid" />
+        <StatTile label="Owed to You" value={owedToYou} tone="unpaid" visible={visible} />
       </div>
     </div>
   );
