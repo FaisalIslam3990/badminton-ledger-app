@@ -10,7 +10,7 @@ import { todayLocalISODate, formatDateUK, formatDateTimeUK } from "@/lib/date";
 import { MarkPaidControl } from "./MarkPaidControl";
 import { ReceiptThumb } from "./ReceiptThumb";
 import { ExportCsvButton } from "./ExportCsvButton";
-import { DotsIcon, PencilIcon, TrashIcon, UndoIcon } from "./icons";
+import { DotsIcon, FileIcon, PencilIcon, TrashIcon, UndoIcon } from "./icons";
 
 type Row = Entry & { receiptSignedUrl: string | null };
 
@@ -477,19 +477,36 @@ function EntryCard({
   onChanged: () => void;
 }) {
   return (
-    <div className={`p-5 ${statusBgClass(entry)}`}>
-      {/* Compact header: date · category, plus the status badge and row
-          menu so both are visible without scanning the whole card. The
-          row menu lives up here rather than in its own row at the
-          bottom — a dedicated bottom row for one small button left the
-          rest of that row's width empty, and put it right where the
-          fixed Add Entry FAB sits as each card scrolls past. Category
-          wraps instead of truncating so a long one never cuts mid-word. */}
-      <div className="flex items-start justify-between gap-2">
-        <span className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-xs font-medium text-ink">
-          {entry.date} · <CategoryTag category={entry.category} />
-        </span>
-        <div className="flex shrink-0 items-center gap-2">
+    <div className={`p-4 ${statusBgClass(entry)}`}>
+      {/* Leading thumbnail + a two-line text column reads leaner on a
+          phone than stacking everything vertically — the receipt icon
+          doubles as a visual anchor so the eye doesn't have to parse a
+          wall of stacked lines per row. The status badge + row menu sit
+          in their own trailing column, top-aligned so they read next to
+          the note (the busiest line) rather than the date. */}
+      <div className="flex items-start gap-3">
+        {entry.receiptSignedUrl ? (
+          <ReceiptThumb
+            signedUrl={entry.receiptSignedUrl}
+            isPdf={isPdfReceipt(entry)}
+            name={entry.receipt_file_name ?? "Receipt"}
+            size="h-14 w-14"
+          />
+        ) : (
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded border border-border bg-card-alt text-ink-muted/50">
+            <FileIcon className="h-5 w-5" />
+          </div>
+        )}
+
+        <div className="min-w-0 flex-1">
+          <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-ink-muted">
+            {entry.date} · <CategoryTag category={entry.category} />
+          </p>
+          <p className="mt-0.5 font-semibold text-ink">{entry.note ?? "—"}</p>
+          <p className="amount mt-0.5 text-lg text-ink">{gbp(entry.amount)}</p>
+        </div>
+
+        <div className="flex shrink-0 flex-col items-end gap-2">
           <StatusBadge entry={entry} showBadge={showBadge} />
           {role === "admin" && (
             <AdminRowMenu entry={entry} onEdit={onEdit} onDelete={onDelete} onChanged={onChanged} />
@@ -497,19 +514,7 @@ function EntryCard({
         </div>
       </div>
 
-      <p className="mt-2 text-ink">{entry.note ?? "—"}</p>
-      <p className="amount mt-1 text-xl text-ink">{gbp(entry.amount)}</p>
-
-      <div className="mt-3 flex items-center justify-between gap-3">
-        {entry.receiptSignedUrl ? (
-          <ReceiptThumb
-            signedUrl={entry.receiptSignedUrl}
-            isPdf={isPdfReceipt(entry)}
-            name={entry.receipt_file_name ?? "Receipt"}
-          />
-        ) : (
-          <span className="text-xs text-ink-muted">No receipt</span>
-        )}
+      <div className="mt-3 pl-[68px]">
         <StatusActions entry={entry} role={role} filter={filter} onChanged={onChanged} />
       </div>
     </div>
