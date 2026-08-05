@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import type { Entry } from "@/lib/summary";
 import type { Role } from "@/lib/roles";
-import { PRESET_CATEGORIES, categoryBadge } from "@/lib/categories";
+import { PRESET_CATEGORIES } from "@/lib/categories";
 import { todayLocalISODate, formatDateUK, formatDateTimeUK } from "@/lib/date";
 import { MarkPaidControl } from "./MarkPaidControl";
 import { ReceiptThumb } from "./ReceiptThumb";
@@ -66,15 +66,8 @@ function Badge({ children, tone }: { children: React.ReactNode; tone: "unpaid" |
 // "Public Liability Insurance"), and cutting it mid-word read as a
 // bug. Wrapping onto a second line is the honest trade-off.
 function CategoryTag({ category }: { category: string | null }) {
-  const badge = categoryBadge(category);
   return (
-    <span className="inline-flex max-w-[11rem] items-start gap-1.5 sm:max-w-[13rem]">
-      <span
-        className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
-        style={{ backgroundColor: badge.bg, color: badge.text }}
-      >
-        {badge.letter}
-      </span>
+    <span className="inline-flex max-w-[11rem] items-start sm:max-w-[13rem]">
       <span className="font-medium leading-snug text-ink">{category ?? "—"}</span>
     </span>
   );
