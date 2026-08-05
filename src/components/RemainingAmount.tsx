@@ -8,7 +8,7 @@ export function RemainingAmount({ amount, negative }: { amount: string; negative
 
   return (
     <div className="mt-1 flex items-center gap-2">
-      <p className={`amount text-4xl ${negative ? "text-red-200" : ""}`}>
+      <p className={`amount inline-block w-[10ch] whitespace-nowrap text-4xl ${negative ? "text-red-200" : ""}`}>
         {visible ? amount : "••••••"}
       </p>
       <button
