@@ -1,5 +1,6 @@
 import { AVAILABLE_BUDGET, COMPOST_LEAGUE_FEE, GRANT_AWARDED } from "@/lib/budget";
 import { computeSummary, type Entry } from "@/lib/summary";
+import { GrantBreakdownToggle } from "@/components/GrantBreakdown";
 
 function gbp(n: number) {
   return n.toLocaleString("en-GB", { style: "currency", currency: "GBP" });
@@ -51,13 +52,11 @@ export function SummaryPanel({ entries }: { entries: Entry[] }) {
             style={{ width: `${meterWidth}%` }}
           />
         </div>
-        <p className="mt-1.5 text-[11px] text-white/70">
-          {gbp(totalSpent)} spent of {gbp(AVAILABLE_BUDGET)} available
-        </p>
+        <p className="mt-1.5 text-[11px] text-white/70">{gbp(AVAILABLE_BUDGET)} available</p>
 
-        <p className="mt-3 border-t border-white/15 pt-2 text-[11px] text-white/60">
-          Grant {gbp(GRANT_AWARDED)} − Compost Fee {gbp(COMPOST_LEAGUE_FEE)} = Available {gbp(AVAILABLE_BUDGET)}
-        </p>
+        <GrantBreakdownToggle
+          breakdown={`Grant ${gbp(GRANT_AWARDED)} − Compost Fee ${gbp(COMPOST_LEAGUE_FEE)} = Available ${gbp(AVAILABLE_BUDGET)}`}
+        />
       </div>
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-stretch">
