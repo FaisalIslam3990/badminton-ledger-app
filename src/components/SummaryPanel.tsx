@@ -93,16 +93,6 @@ export function SummaryPanel({ entries }: { entries: Entry[] }) {
           <StatTile label="Total Received" value={totalReceived} tone="received" visible={visible} />
         </div>
 
-        <div className="sm:hidden">
-          <div className="flex justify-center">
-            <div className="h-4 w-px border-l border-dashed border-ink-muted/40" />
-          </div>
-          <div className="flex justify-center">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full border border-ink-muted/40 text-xs text-ink-muted">
-              =
-            </div>
-          </div>
-        </div>
         <span className="amount hidden text-lg text-ink-muted sm:flex sm:items-center">=</span>
 
         <StatTile label="Owed to You" value={owedToYou} tone="unpaid" visible />
