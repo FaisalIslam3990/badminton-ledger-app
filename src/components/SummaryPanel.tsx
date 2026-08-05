@@ -5,14 +5,18 @@ function gbp(n: number) {
   return n.toLocaleString("en-GB", { style: "currency", currency: "GBP" });
 }
 
-function StatTile({ label, value, tone }: { label: string; value: number; tone: "received" | "dark" }) {
+function StatTile({ label, value, tone }: { label: string; value: number; tone: "received" | "dark" | "unpaid" }) {
   const toneClass = {
     received: "bg-received text-received-ink",
     dark: "bg-card-alt text-ink",
+    unpaid: "bg-unpaid text-unpaid-ink",
   }[tone];
   return (
-    <div className={`rounded-lg p-3 ${toneClass}`}>
-      <p className="text-[10px] font-medium uppercase tracking-wide opacity-70">{label}</p>
+    <div className={`rounded-lg p-3 sm:flex-1 ${toneClass}`}>
+      <p className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wide opacity-70">
+        {tone === "unpaid" && <span className="h-1.5 w-1.5 rounded-full bg-unpaid-ink" />}
+        {label}
+      </p>
       <p className="amount mt-0.5 text-lg">{gbp(value)}</p>
     </div>
   );
@@ -56,27 +60,26 @@ export function SummaryPanel({ entries }: { entries: Entry[] }) {
         </p>
       </div>
 
-      <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-        <StatTile label="Total Spent" value={totalSpent} tone="dark" />
-        <span className="amount text-lg text-ink-muted">−</span>
-        <StatTile label="Total Received" value={totalReceived} tone="received" />
-      </div>
-
-      <div className="flex justify-center">
-        <div className="h-4 w-px border-l border-dashed border-ink-muted/40" />
-      </div>
-      <div className="flex justify-center">
-        <div className="flex h-7 w-7 items-center justify-center rounded-full border border-ink-muted/40 text-xs text-ink-muted">
-          =
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-stretch">
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:contents">
+          <StatTile label="Total Spent" value={totalSpent} tone="dark" />
+          <span className="amount text-lg text-ink-muted">−</span>
+          <StatTile label="Total Received" value={totalReceived} tone="received" />
         </div>
-      </div>
 
-      <div className="mt-1 rounded-xl bg-unpaid p-6">
-        <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-unpaid-ink">
-          <span className="h-2 w-2 rounded-full bg-unpaid-ink" />
-          Owed to You
-        </p>
-        <p className="amount mt-1 text-4xl font-bold text-unpaid-ink">{gbp(owedToYou)}</p>
+        <div className="sm:hidden">
+          <div className="flex justify-center">
+            <div className="h-4 w-px border-l border-dashed border-ink-muted/40" />
+          </div>
+          <div className="flex justify-center">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full border border-ink-muted/40 text-xs text-ink-muted">
+              =
+            </div>
+          </div>
+        </div>
+        <span className="amount hidden text-lg text-ink-muted sm:flex sm:items-center">=</span>
+
+        <StatTile label="Owed to You" value={owedToYou} tone="unpaid" />
       </div>
     </div>
   );
