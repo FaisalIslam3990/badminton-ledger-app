@@ -75,9 +75,7 @@ export function SummaryPanel({ entries }: { entries: Entry[] }) {
             style={{ width: `${meterWidth}%` }}
           />
         </div>
-        <p className="mt-1.5 text-[11px] text-white/70">
-          From {visible ? gbp(AVAILABLE_BUDGET) : MASK} available
-        </p>
+        <p className="mt-1.5 text-[11px] text-white/70">From {visible ? gbp(AVAILABLE_BUDGET) : MASK}</p>
 
         <GrantBreakdownToggle
           breakdown={
