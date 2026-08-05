@@ -32,10 +32,10 @@ export function ViewerSummary({ entries }: { entries: Entry[] }) {
   return (
     <div className="card mb-8 p-6">
       <h2 className="mb-4 text-lg font-semibold text-ink">Outstanding to Pay</h2>
-      <div className="rounded-xl bg-primary p-6 text-white">
-        <p className="text-xs font-medium uppercase tracking-wide text-white/80">Outstanding to Pay</p>
+      <div className="rounded-xl bg-unpaid p-6 text-unpaid-ink">
+        <p className="text-xs font-medium uppercase tracking-wide opacity-80">Outstanding to Pay</p>
         <p className="amount mt-1 text-4xl">{gbp(outstandingToPay)}</p>
-        <p className="mt-1 text-sm text-white/80">
+        <p className="mt-1 text-sm opacity-80">
           {unpaidExpenses.length === 0
             ? "Nothing outstanding"
             : `${unpaidExpenses.length} unpaid item${unpaidExpenses.length === 1 ? "" : "s"}`}
