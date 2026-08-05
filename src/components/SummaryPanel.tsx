@@ -1,6 +1,7 @@
 import { AVAILABLE_BUDGET, COMPOST_LEAGUE_FEE, GRANT_AWARDED } from "@/lib/budget";
 import { computeSummary, type Entry } from "@/lib/summary";
 import { GrantBreakdownToggle } from "@/components/GrantBreakdown";
+import { RemainingAmount } from "@/components/RemainingAmount";
 
 function gbp(n: number) {
   return n.toLocaleString("en-GB", { style: "currency", currency: "GBP" });
@@ -42,9 +43,7 @@ export function SummaryPanel({ entries }: { entries: Entry[] }) {
 
       <div className="rounded-xl bg-primary p-6 text-white">
         <p className="text-xs font-medium uppercase tracking-wide text-white/80">Remaining to Spend</p>
-        <p className={`amount mt-1 text-4xl ${remainingToSpend < 0 ? "text-red-200" : ""}`}>
-          {gbp(remainingToSpend)}
-        </p>
+        <RemainingAmount amount={gbp(remainingToSpend)} negative={remainingToSpend < 0} />
 
         <div className="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-white/15">
           <div
