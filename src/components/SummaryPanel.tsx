@@ -12,7 +12,7 @@ function StatTile({ label, value, tone }: { label: string; value: number; tone: 
     unpaid: "bg-unpaid text-unpaid-ink",
   }[tone];
   return (
-    <div className={`rounded-lg p-3 sm:flex-1 ${toneClass}`}>
+    <div className={`rounded-lg p-3 sm:min-w-0 sm:flex-1 ${toneClass}`}>
       <p className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wide opacity-70">
         {tone === "unpaid" && <span className="h-1.5 w-1.5 rounded-full bg-unpaid-ink" />}
         {label}
@@ -63,7 +63,7 @@ export function SummaryPanel({ entries }: { entries: Entry[] }) {
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-stretch">
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:contents">
           <StatTile label="Total Spent" value={totalSpent} tone="dark" />
-          <span className="amount text-lg text-ink-muted">−</span>
+          <span className="amount flex items-center justify-center text-lg text-ink-muted">−</span>
           <StatTile label="Total Received" value={totalReceived} tone="received" />
         </div>
 
