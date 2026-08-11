@@ -116,6 +116,14 @@ body {
   animation: sheet-up 260ms cubic-bezier(0.32, 0.72, 0, 1) both;
 }
 
+/* Drag-to-dismiss snap-back: applied only when a released drag didn't
+   pass the close threshold, so the sheet eases back to rest instead
+   of jumping — the drag itself sets `transform` directly with no
+   transition, for true 1:1 pointer tracking while the finger moves. */
+.sheet-snapback {
+  transition: transform 200ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
 @keyframes scrim-in {
   from {
     opacity: 0;
@@ -156,5 +164,8 @@ body {
   .scrim-enter,
   .dropdown-enter {
     animation: none;
+  }
+  .sheet-snapback {
+    transition: none;
   }
 }

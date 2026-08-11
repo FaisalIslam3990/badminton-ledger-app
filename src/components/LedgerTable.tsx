@@ -598,7 +598,8 @@ function EntryDetailSheet({
   onDelete: () => void;
   onChanged: () => void;
 }) {
-  const touchStartY = useRef<number | null>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const drag = useRef<{ startY: number; startTime: number } | null>(null);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -613,14 +614,39 @@ function EntryDetailSheet({
     };
   }, [onClose]);
 
-  function handleTouchStart(e: React.TouchEvent) {
-    touchStartY.current = e.touches[0]?.clientY ?? null;
+  // Drag lives on the handle only (not the whole sheet) so it never
+  // fights with scrolling the content or tapping a button inside. The
+  // sheet tracks the pointer 1:1 the whole way — checking only the
+  // total distance on release (the old approach) gave no feedback
+  // during the gesture, which read as broken even when it "worked".
+  function onHandlePointerDown(e: React.PointerEvent) {
+    (e.currentTarget as Element).setPointerCapture(e.pointerId);
+    drag.current = { startY: e.clientY, startTime: performance.now() };
+    if (sheetRef.current) sheetRef.current.style.transition = "none";
   }
-  function handleTouchEnd(e: React.TouchEvent) {
-    if (touchStartY.current == null) return;
-    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
-    touchStartY.current = null;
-    if (deltaY > 80) onClose();
+
+  function onHandlePointerMove(e: React.PointerEvent) {
+    if (!drag.current || !sheetRef.current) return;
+    const deltaY = Math.max(0, e.clientY - drag.current.startY);
+    sheetRef.current.style.transform = `translateY(${deltaY}px)`;
+  }
+
+  function onHandlePointerUp(e: React.PointerEvent) {
+    if (!drag.current || !sheetRef.current) return;
+    const deltaY = Math.max(0, e.clientY - drag.current.startY);
+    const elapsed = Math.max(1, performance.now() - drag.current.startTime);
+    const velocity = deltaY / elapsed; // px/ms
+    drag.current = null;
+    sheetRef.current.style.transition = "";
+
+    // Either a deliberate drag past the threshold, or a quick flick
+    // that hadn't traveled far yet — both should dismiss.
+    if (deltaY > 120 || velocity > 0.5) {
+      onClose();
+      return;
+    }
+    sheetRef.current.classList.add("sheet-snapback");
+    sheetRef.current.style.transform = "";
   }
 
   if (typeof document === "undefined") return null;
@@ -631,12 +657,19 @@ function EntryDetailSheet({
       onClick={onClose}
     >
       <div
+        ref={sheetRef}
         className="sheet-enter card w-full max-w-md rounded-b-none p-5 sm:rounded-b-2xl"
         onClick={(e) => e.stopPropagation()}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
       >
-        <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-border sm:hidden" aria-hidden />
+        <div
+          onPointerDown={onHandlePointerDown}
+          onPointerMove={onHandlePointerMove}
+          onPointerUp={onHandlePointerUp}
+          onPointerCancel={onHandlePointerUp}
+          className="touch-none sm:hidden -mt-1 mb-2 flex justify-center py-2"
+        >
+          <div className="h-1 w-10 rounded-full bg-border" aria-hidden />
+        </div>
 
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -669,12 +702,14 @@ function EntryDetailSheet({
           <div>
             <p className="mb-1.5 text-xs text-ink-muted">Receipt</p>
             {entry.receiptSignedUrl ? (
-              <ReceiptThumb
-                signedUrl={entry.receiptSignedUrl}
-                isPdf={isPdfReceipt(entry)}
-                name={entry.receipt_file_name ?? "Receipt"}
-                size="h-24 w-24"
-              />
+              <div className="inline-flex rounded-xl border border-border bg-card-alt p-2">
+                <ReceiptThumb
+                  signedUrl={entry.receiptSignedUrl}
+                  isPdf={isPdfReceipt(entry)}
+                  name={entry.receipt_file_name ?? "Receipt"}
+                  size="h-28 w-28"
+                />
+              </div>
             ) : (
               <p className="text-ink-muted">No receipt attached</p>
             )}
@@ -695,7 +730,7 @@ function EntryDetailSheet({
                 onClose();
                 onEdit();
               }}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-sm text-ink hover:bg-white/5"
+              className="pressable flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-sm text-ink hover:bg-white/5"
             >
               <PencilIcon className="h-3.5 w-3.5" /> Edit
             </button>
@@ -704,7 +739,7 @@ function EntryDetailSheet({
                 onClose();
                 onDelete();
               }}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm text-unpaid-ink hover:bg-unpaid"
+              className="pressable flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-sm text-unpaid-ink hover:bg-unpaid"
             >
               <TrashIcon className="h-3.5 w-3.5" /> Delete
             </button>
