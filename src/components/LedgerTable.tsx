@@ -10,6 +10,7 @@ import { todayLocalISODate, formatDateUK, formatDateTimeUK } from "@/lib/date";
 import { MarkPaidControl } from "./MarkPaidControl";
 import { ReceiptThumb } from "./ReceiptThumb";
 import { ExportCsvButton } from "./ExportCsvButton";
+import { confirmAsync } from "./ConfirmDialog";
 import { CloseIcon, DotsIcon, FileIcon, PencilIcon, TrashIcon, UndoIcon } from "./icons";
 
 type Row = Entry & { receiptSignedUrl: string | null };
@@ -90,14 +91,18 @@ function entryActions(entry: Row, onChanged: () => void) {
       await patch({ paid: true, paid_at: paidAt, payment_reference: reference || null });
     },
     async undoSent() {
-      if (!confirm("Undo this payment? This clears the payment date/reference.")) return;
+      const ok = await confirmAsync("Undo this payment? This clears the payment date/reference.", {
+        confirmLabel: "Undo Payment",
+      });
+      if (!ok) return;
       await patch({ paid: false, paid_at: null, payment_reference: null });
     },
     async confirmReceived() {
       await patch({ received: true, received_at: todayLocalISODate() });
     },
     async undoReceived() {
-      if (!confirm("Undo confirming this as received?")) return;
+      const ok = await confirmAsync("Undo confirming this as received?", { confirmLabel: "Undo Received" });
+      if (!ok) return;
       await patch({ received: false, received_at: null });
     },
   };
@@ -122,7 +127,7 @@ function RowMenu({
   undo?: { label: string; onClick: () => void };
 }) {
   const [open, setOpen] = useState(false);
-  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+  const [coords, setCoords] = useState<{ top: number; left: number; origin: string } | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   function openMenu() {
@@ -149,7 +154,12 @@ function RowMenu({
       const fitsBelow = rect.bottom + 4 + estimatedHeight <= viewportHeight - 8;
       const top = fitsBelow ? rect.bottom + 4 : Math.max(rect.top - estimatedHeight - 4, 8);
 
-      setCoords({ top, left: Math.max(left, 8) });
+      // Scale in from whichever corner is actually next to the button,
+      // so the menu visually originates from what triggered it instead
+      // of just appearing at a fixed point.
+      const origin = `${fitsBelow ? "top" : "bottom"} left`;
+
+      setCoords({ top, left: Math.max(left, 8), origin });
     }
     setOpen(true);
   }
@@ -173,7 +183,7 @@ function RowMenu({
         ref={buttonRef}
         onClick={openMenu}
         aria-label="Row actions"
-        className="flex h-9 w-9 items-center justify-center rounded-md border border-border text-ink-muted hover:bg-white/5 hover:text-ink"
+        className="pressable flex h-9 w-9 items-center justify-center rounded-md border border-border text-ink-muted hover:bg-white/5 hover:text-ink"
       >
         <DotsIcon className="h-4 w-4" />
       </button>
@@ -184,8 +194,8 @@ function RowMenu({
           <>
             <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
             <div
-              className="card fixed z-40 w-48 p-1 text-sm"
-              style={{ top: coords.top, left: coords.left }}
+              className="card card-floating dropdown-enter fixed z-40 w-48 p-1 text-sm"
+              style={{ top: coords.top, left: coords.left, transformOrigin: coords.origin }}
             >
               {undo && (
                 <button
@@ -193,7 +203,7 @@ function RowMenu({
                     setOpen(false);
                     undo.onClick();
                   }}
-                  className="flex w-full items-center gap-2 whitespace-nowrap rounded-lg px-2 py-2 text-left text-pending-ink hover:bg-pending"
+                  className="pressable flex w-full items-center gap-2 whitespace-nowrap rounded-lg px-2 py-2 text-left text-pending-ink hover:bg-pending"
                 >
                   <UndoIcon className="h-3.5 w-3.5" /> {undo.label}
                 </button>
@@ -203,7 +213,7 @@ function RowMenu({
                   setOpen(false);
                   onEdit();
                 }}
-                className="flex w-full items-center gap-2 whitespace-nowrap rounded-lg px-2 py-2 text-left text-ink hover:bg-white/5"
+                className="pressable flex w-full items-center gap-2 whitespace-nowrap rounded-lg px-2 py-2 text-left text-ink hover:bg-white/5"
               >
                 <PencilIcon className="h-3.5 w-3.5" /> Edit
               </button>
@@ -212,7 +222,7 @@ function RowMenu({
                   setOpen(false);
                   onDelete();
                 }}
-                className="flex w-full items-center gap-2 whitespace-nowrap rounded-lg px-2 py-2 text-left text-unpaid-ink hover:bg-unpaid"
+                className="pressable flex w-full items-center gap-2 whitespace-nowrap rounded-lg px-2 py-2 text-left text-unpaid-ink hover:bg-unpaid"
               >
                 <TrashIcon className="h-3.5 w-3.5" /> Delete
               </button>
@@ -275,7 +285,8 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
   const columnCount = 5 + (showStatusColumn ? 1 : 0) + (role === "admin" ? 1 : 0);
 
   async function deleteEntry(id: string) {
-    if (!confirm("Delete this entry? This can't be undone.")) return;
+    const ok = await confirmAsync("Delete this entry? This can't be undone.", { danger: true });
+    if (!ok) return;
     await fetch(`/api/entries/${id}`, { method: "DELETE" });
     router.refresh();
   }
@@ -310,7 +321,7 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
       {/* rounded-t-2xl (16px) matches .card's own border-radius exactly —
           rounded-t-xl (12px) was slightly smaller, leaving a notch where
           the two arcs didn't line up at each top corner. */}
-      <div className="sticky top-16 z-20 rounded-t-2xl border-b border-border bg-card">
+      <div className="sticky top-16 z-20 rounded-t-2xl border-b border-border bg-card/70 backdrop-blur-lg">
         <div className="flex items-center justify-between gap-3 px-4 pt-4">
           <h2 className="text-lg font-semibold text-ink">Ledger</h2>
           <ExportCsvButton />
@@ -320,7 +331,7 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`shrink-0 rounded-full px-4 py-2 text-xs font-medium ${
+              className={`pressable shrink-0 rounded-full px-4 py-2 text-xs font-medium ${
                 filter === f
                   ? "bg-primary text-white"
                   : "border border-border text-ink-muted hover:bg-white/5"
@@ -642,7 +653,7 @@ function EntryDetailSheet({
           </button>
         </div>
 
-        <p className="amount mt-3 text-3xl text-ink">{gbp(entry.amount)}</p>
+        <p className="amount mt-3 text-3xl tracking-tight text-ink">{gbp(entry.amount)}</p>
 
         <div className="mt-4 space-y-4 border-t border-border pt-4 text-sm">
           {entry.vendor && (

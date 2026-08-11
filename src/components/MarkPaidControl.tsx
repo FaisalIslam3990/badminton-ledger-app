@@ -32,13 +32,14 @@ export function MarkPaidControl({
 
   const modal = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      className="scrim-enter fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 backdrop-blur-sm sm:items-center"
       onClick={() => setOpen(false)}
     >
       <div
-        className="card w-full max-w-xs p-5 text-left"
+        className="sheet-enter card w-full max-w-xs rounded-b-none p-5 text-left sm:rounded-b-2xl"
         onClick={(e) => e.stopPropagation()}
       >
+        <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-border sm:hidden" aria-hidden />
         {confirmationMessage && (
           <p className="mb-3 rounded-lg bg-pending px-3 py-2 text-sm font-medium text-pending-ink">
             {confirmationMessage}
@@ -63,13 +64,13 @@ export function MarkPaidControl({
           <button
             onClick={confirm}
             disabled={saving}
-            className="flex-1 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-60"
+            className="pressable flex-1 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-60"
           >
             {saving ? "Saving…" : "Confirm"}
           </button>
           <button
             onClick={() => setOpen(false)}
-            className="flex-1 rounded-lg border border-border px-3 py-2 text-sm text-ink"
+            className="pressable flex-1 rounded-lg border border-border px-3 py-2 text-sm text-ink"
           >
             Cancel
           </button>
@@ -82,7 +83,7 @@ export function MarkPaidControl({
     <>
       <button
         onClick={() => setOpen(true)}
-        className={buttonClassName ?? "rounded-lg border border-border px-2 py-1 text-xs text-ink hover:bg-white/5"}
+        className={`pressable ${buttonClassName ?? "rounded-lg border border-border px-2 py-1 text-xs text-ink hover:bg-white/5"}`}
       >
         {label}
       </button>

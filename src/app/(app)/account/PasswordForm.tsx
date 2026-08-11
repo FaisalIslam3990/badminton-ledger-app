@@ -32,7 +32,7 @@ export function PasswordForm() {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-lg bg-primary px-4 py-2 font-medium text-white hover:bg-primary-dark disabled:opacity-60"
+        className="pressable w-full rounded-lg bg-primary px-4 py-2 font-medium text-white hover:bg-primary-dark disabled:opacity-60"
       >
         {pending ? "Saving…" : "Save password"}
       </button>

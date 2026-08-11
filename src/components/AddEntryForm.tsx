@@ -194,14 +194,14 @@ export function AddEntryForm() {
                 setExtractionMethod(null);
                 if (fileInputRef.current) fileInputRef.current.value = "";
               }}
-              className="flex-1 rounded-lg border border-border px-4 py-2 text-ink"
+              className="pressable flex-1 rounded-lg border border-border px-4 py-2 text-ink"
             >
               Retake
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 rounded-lg bg-primary px-4 py-2 font-medium text-white hover:bg-primary-dark disabled:opacity-60"
+              className="pressable flex-1 rounded-lg bg-primary px-4 py-2 font-medium text-white hover:bg-primary-dark disabled:opacity-60"
             >
               {saving ? "Saving…" : "Save expense"}
             </button>

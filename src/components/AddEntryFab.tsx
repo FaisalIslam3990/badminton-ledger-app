@@ -44,7 +44,7 @@ export function AddEntryFab() {
       <button
         onClick={() => inputRef.current?.click()}
         aria-label="Add entry"
-        className="fixed bottom-[calc(2.5rem+env(safe-area-inset-bottom))] right-5 z-40 flex h-12 items-center gap-1.5 rounded-full bg-accent px-5 text-sm font-semibold text-accent-ink shadow-lg shadow-black/40 hover:opacity-90"
+        className="pressable fixed bottom-[calc(2.5rem+env(safe-area-inset-bottom))] right-5 z-40 flex h-12 items-center gap-1.5 rounded-full bg-accent px-5 text-sm font-semibold text-accent-ink shadow-lg shadow-black/40 hover:opacity-90"
       >
         <PlusIcon className="h-4 w-4" />
         Add

@@ -32,7 +32,7 @@ export function AccountMenu({
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 hover:bg-white/5"
+        className="pressable flex items-center gap-2 rounded-full py-1 pl-1 pr-2 hover:bg-white/5"
         aria-label="Account menu"
       >
         <span
@@ -45,14 +45,17 @@ export function AccountMenu({
         <span className="hidden text-xs capitalize text-ink-muted sm:inline">{role}</span>
       </button>
       {open && (
-        <div className="card absolute right-0 top-full z-20 mt-2 w-56 p-2 text-sm">
+        <div
+          className="card card-floating dropdown-enter absolute right-0 top-full z-20 mt-2 w-56 p-2 text-sm"
+          style={{ transformOrigin: "top right" }}
+        >
           <p className="truncate px-2 py-1 text-xs text-ink-muted">{identity}</p>
           <p className="px-2 pb-1 text-xs capitalize text-ink-muted">{role}</p>
           <div className="my-1 border-t border-border" />
           <Link
             href="/account"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-ink hover:bg-white/5"
+            className="pressable flex items-center gap-2 rounded-lg px-2 py-1.5 text-ink hover:bg-white/5"
           >
             <GearIcon />
             Account
@@ -61,7 +64,7 @@ export function AccountMenu({
             <Link
               href="/users"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-ink hover:bg-white/5"
+              className="pressable flex items-center gap-2 rounded-lg px-2 py-1.5 text-ink hover:bg-white/5"
             >
               <UsersIcon />
               Users
@@ -70,7 +73,7 @@ export function AccountMenu({
           <form action={signOutAction}>
             <button
               type="submit"
-              className="block w-full rounded-lg px-2 py-1.5 text-left text-primary hover:bg-white/5"
+              className="pressable block w-full rounded-lg px-2 py-1.5 text-left text-primary hover:bg-white/5"
             >
               Sign out
             </button>

@@ -3,6 +3,7 @@ import { getCurrentRole } from "@/lib/roles";
 import { displayIdentity } from "@/lib/username";
 import { AccountMenu } from "@/components/AccountMenu";
 import { AppNav } from "@/components/AppNav";
+import { ConfirmDialogHost } from "@/components/ConfirmDialog";
 import { signOut } from "./actions";
 
 export default async function AppLayout({
@@ -14,10 +15,10 @@ export default async function AppLayout({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-30 border-b border-border bg-card shadow-[0_1px_0_rgba(0,0,0,0.4)]">
+      <header className="sticky top-0 z-30 border-b border-border bg-card/70 shadow-[0_1px_0_rgba(0,0,0,0.4)] backdrop-blur-lg">
         <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4">
           <div className="flex items-center gap-6">
-            <Link href="/" className="text-lg font-bold text-ink">
+            <Link href="/" className="pressable text-lg font-bold text-ink">
               Badminton Club
             </Link>
             <AppNav />
@@ -33,6 +34,7 @@ export default async function AppLayout({
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8">
         {children}
       </main>
+      <ConfirmDialogHost />
     </div>
   );
 }
