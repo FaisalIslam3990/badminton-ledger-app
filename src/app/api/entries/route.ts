@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentRole } from "@/lib/roles";
 import { NextResponse } from "next/server";
 
+const VALID_EXTRACTION_METHODS = new Set(["template", "heuristic", "ai"]);
+
 function sanitizeForPath(input: string) {
   return input
     .normalize("NFKD")
@@ -29,6 +31,11 @@ export async function POST(request: Request) {
   const note = String(formData.get("note") ?? "") || null;
   const amountRaw = formData.get("amount");
   const receipt = formData.get("receipt");
+  const extractionMethodRaw = formData.get("extraction_method");
+  const extraction_method =
+    typeof extractionMethodRaw === "string" && VALID_EXTRACTION_METHODS.has(extractionMethodRaw)
+      ? extractionMethodRaw
+      : null;
 
   const amount = Number(amountRaw);
   if (!date || !Number.isFinite(amount) || amount <= 0) {
@@ -39,7 +46,7 @@ export async function POST(request: Request) {
 
   const { data: entry, error: insertError } = await supabase
     .from("entries")
-    .insert({ date, type: "expense", category, vendor, note, amount })
+    .insert({ date, type: "expense", category, vendor, note, amount, extraction_method })
     .select()
     .single();
 

@@ -25,6 +25,7 @@ export function AddEntryForm() {
   const [extracting, setExtracting] = useState(false);
   const [extractError, setExtractError] = useState<string | null>(null);
   const [fields, setFields] = useState<ExtractedFields | null>(null);
+  const [extractionMethod, setExtractionMethod] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -32,6 +33,7 @@ export function AddEntryForm() {
     setFile(selected);
     setPreviewUrl(selected.type === "application/pdf" ? null : URL.createObjectURL(selected));
     setFields(null);
+    setExtractionMethod(null);
     setExtractError(null);
     setExtracting(true);
 
@@ -47,6 +49,7 @@ export function AddEntryForm() {
         return;
       }
       setFields(body.extracted);
+      setExtractionMethod(body.extraction_method ?? null);
     } catch {
       setExtractError("Couldn't read the receipt — enter details manually.");
       setFields({ date: todayLocalISODate(), vendor: "", amount: 0, category: "Other", note: "" });
@@ -83,6 +86,7 @@ export function AddEntryForm() {
     formData.set("category", fields.category);
     formData.set("note", fields.note);
     formData.set("receipt", file);
+    if (extractionMethod) formData.set("extraction_method", extractionMethod);
 
     const res = await fetch("/api/entries", { method: "POST", body: formData });
     setSaving(false);
@@ -187,6 +191,7 @@ export function AddEntryForm() {
                 setFile(null);
                 setPreviewUrl(null);
                 setFields(null);
+                setExtractionMethod(null);
                 if (fileInputRef.current) fileInputRef.current.value = "";
               }}
               className="flex-1 rounded-lg border border-border px-4 py-2 text-ink"

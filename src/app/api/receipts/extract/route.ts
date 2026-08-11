@@ -2,6 +2,9 @@ import { getCurrentRole } from "@/lib/roles";
 import { PRESET_CATEGORIES } from "@/lib/categories";
 import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
+import { extractPdfText, hasSubstantialText } from "@/lib/receiptExtraction/pdfText";
+import { matchReceiptTemplate } from "@/lib/receiptExtraction/templates";
+import { runHeuristicExtraction } from "@/lib/receiptExtraction/heuristics";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic", "application/pdf"];
@@ -29,6 +32,29 @@ export async function POST(request: Request) {
   }
 
   const bytes = Buffer.from(await file.arrayBuffer());
+
+  // Tiers 1 (known template) and 2 (generic heuristic) are pure
+  // string/regex code — zero API calls — and only have anything to work
+  // with on a PDF that has a real text layer. A scanned/image-only PDF
+  // or a photo has no extractable text, so it skips straight to the AI
+  // vision tier below. Whichever tier produces a result wins; later
+  // tiers never run once an earlier one has.
+  if (file.type === "application/pdf") {
+    const text = await extractPdfText(bytes);
+    if (hasSubstantialText(text)) {
+      const templateMatch = matchReceiptTemplate(text);
+      if (templateMatch) {
+        return NextResponse.json({ extracted: templateMatch, extraction_method: "template" });
+      }
+
+      const heuristicMatch = runHeuristicExtraction(text);
+      if (heuristicMatch) {
+        return NextResponse.json({ extracted: heuristicMatch, extraction_method: "heuristic" });
+      }
+    }
+  }
+
+  // Tier 3 — Claude vision. The only tier that costs API tokens.
   const base64 = bytes.toString("base64");
 
   const contentBlock: Anthropic.Messages.ContentBlockParam =
@@ -102,7 +128,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Extraction failed" }, { status: 502 });
     }
 
-    return NextResponse.json({ extracted: toolUse.input });
+    return NextResponse.json({ extracted: toolUse.input, extraction_method: "ai" });
   } catch (err) {
     console.error("Claude extraction error:", err);
     return NextResponse.json({ error: "Extraction failed" }, { status: 502 });

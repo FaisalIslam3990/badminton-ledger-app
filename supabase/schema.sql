@@ -85,6 +85,14 @@ create table if not exists public.entries (
   created_at timestamptz not null default now()
 );
 
+-- Which tier of the receipt-extraction pipeline produced this entry's
+-- fields: a free regex template match, a free generic heuristic guess,
+-- or the paid Claude vision call. Nullable — entries created before
+-- this column existed, or typed in by hand, have no extraction method.
+alter table public.entries
+  add column if not exists extraction_method text
+  check (extraction_method in ('template', 'heuristic', 'ai'));
+
 alter table public.entries enable row level security;
 
 -- Admin: full read/write.

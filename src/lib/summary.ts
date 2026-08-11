@@ -18,6 +18,7 @@ export type Entry = {
   paid_marked_at: string | null;
   received_marked_at: string | null;
   created_at: string;
+  extraction_method: "template" | "heuristic" | "ai" | null;
 };
 
 export function computeSummary(entries: Entry[]) {
