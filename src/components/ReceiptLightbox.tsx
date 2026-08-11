@@ -47,7 +47,7 @@ export function ReceiptLightbox({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+      className="scrim-enter fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-md"
       onClick={onClose}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
@@ -55,7 +55,7 @@ export function ReceiptLightbox({
       <button
         onClick={onClose}
         aria-label="Close"
-        className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white hover:bg-black/60"
+        className="pressable absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md hover:bg-white/20"
       >
         <CloseIcon className="h-5 w-5" />
       </button>
@@ -64,7 +64,7 @@ export function ReceiptLightbox({
       <img
         src={signedUrl}
         alt={name}
-        className="max-h-full max-w-full rounded shadow-xl"
+        className="max-h-full max-w-full rounded-lg shadow-xl"
         onClick={(e) => e.stopPropagation()}
       />
     </div>,

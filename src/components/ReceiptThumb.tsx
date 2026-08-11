@@ -29,7 +29,7 @@ export function ReceiptThumb({
         target="_blank"
         rel="noopener noreferrer"
         title={name}
-        className={`flex ${size} items-center justify-center rounded border border-border bg-card-alt text-ink-muted hover:text-ink`}
+        className={`pressable flex ${size} shrink-0 items-center justify-center rounded-lg border border-border bg-card-alt text-ink-muted shadow-sm hover:text-ink`}
       >
         <FileIcon className="h-5 w-5" />
       </a>
@@ -38,12 +38,12 @@ export function ReceiptThumb({
 
   return (
     <>
-      <button onClick={() => setOpen(true)} title={name}>
+      <button onClick={() => setOpen(true)} title={name} className="pressable shrink-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={signedUrl}
           alt={name}
-          className={`${size} rounded border border-border object-cover`}
+          className={`${size} rounded-lg border border-border object-cover shadow-sm`}
         />
       </button>
       {open && <ReceiptLightbox signedUrl={signedUrl} name={name} onClose={() => setOpen(false)} />}

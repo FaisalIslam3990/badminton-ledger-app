@@ -10,7 +10,7 @@ import { todayLocalISODate, formatDateUK, formatDateTimeUK } from "@/lib/date";
 import { MarkPaidControl } from "./MarkPaidControl";
 import { ReceiptThumb } from "./ReceiptThumb";
 import { ExportCsvButton } from "./ExportCsvButton";
-import { DotsIcon, FileIcon, PencilIcon, TrashIcon, UndoIcon } from "./icons";
+import { CloseIcon, DotsIcon, FileIcon, PencilIcon, TrashIcon, UndoIcon } from "./icons";
 
 type Row = Entry & { receiptSignedUrl: string | null };
 
@@ -482,6 +482,7 @@ function EntryCard({
   // whole extra row below. Move it up there instead of leaving it below.
   const showInlineMarkPaid = role === "viewer" && filter === "unpaid" && !entry.paid && !entry.received;
   const { markSent } = entryActions(entry, onChanged);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   return (
     <div className={`p-3 ${statusBgClass(entry)}`}>
@@ -508,13 +509,21 @@ function EntryCard({
           </div>
         )}
 
-        <div className="min-w-0 flex-1">
+        {/* Note is single-line + ellipsis, not wrapped — the full text
+            (plus vendor, payment history, and everything else) is one
+            tap away in the detail sheet instead of forcing every card
+            to grow to fit its longest field. */}
+        <button
+          type="button"
+          onClick={() => setDetailOpen(true)}
+          className="pressable min-w-0 flex-1 text-left"
+        >
           <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-ink-muted">
             {entry.date} · <CategoryTag category={entry.category} />
           </p>
-          <p className="mt-0.5 text-sm font-semibold leading-snug text-ink">{entry.note ?? "—"}</p>
+          <p className="mt-0.5 truncate text-sm font-semibold text-ink">{entry.note ?? "—"}</p>
           <p className="amount mt-0.5 text-base text-ink">{gbp(entry.amount)}</p>
-        </div>
+        </button>
 
         <div className="flex shrink-0 flex-col items-end gap-1.5">
           {showInlineMarkPaid ? (
@@ -539,7 +548,160 @@ function EntryCard({
           <StatusActions entry={entry} role={role} filter={filter} onChanged={onChanged} />
         </div>
       )}
+
+      {detailOpen && (
+        <EntryDetailSheet
+          entry={entry}
+          role={role}
+          filter={filter}
+          onClose={() => setDetailOpen(false)}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onChanged={onChanged}
+        />
+      )}
     </div>
+  );
+}
+
+// Everything the compact card leaves out — full note, vendor, a bigger
+// receipt preview, and the complete payment history — one tap away
+// instead of forced onto the card itself. Slides up from the edge it
+// closes back to (spatial consistency), over a translucent scrim
+// rather than a flat one (materials) so it reads as a layer above the
+// list, not a page swap.
+function EntryDetailSheet({
+  entry,
+  role,
+  filter,
+  onClose,
+  onEdit,
+  onDelete,
+  onChanged,
+}: {
+  entry: Row;
+  role: Role;
+  filter: PaidFilter;
+  onClose: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  onChanged: () => void;
+}) {
+  const touchStartY = useRef<number | null>(null);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [onClose]);
+
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartY.current = e.touches[0]?.clientY ?? null;
+  }
+  function handleTouchEnd(e: React.TouchEvent) {
+    if (touchStartY.current == null) return;
+    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+    touchStartY.current = null;
+    if (deltaY > 80) onClose();
+  }
+
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div
+      className="scrim-enter fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm sm:items-center"
+      onClick={onClose}
+    >
+      <div
+        className="sheet-enter card w-full max-w-md rounded-b-none p-5 sm:rounded-b-2xl"
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-border sm:hidden" aria-hidden />
+
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-xs text-ink-muted">
+              {entry.date} · <CategoryTag category={entry.category} />
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="pressable flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-ink-muted hover:bg-white/5 hover:text-ink"
+          >
+            <CloseIcon className="h-4 w-4" />
+          </button>
+        </div>
+
+        <p className="amount mt-3 text-3xl text-ink">{gbp(entry.amount)}</p>
+
+        <div className="mt-4 space-y-4 border-t border-border pt-4 text-sm">
+          {entry.vendor && (
+            <div>
+              <p className="text-xs text-ink-muted">Vendor</p>
+              <p className="mt-0.5 text-ink">{entry.vendor}</p>
+            </div>
+          )}
+          <div>
+            <p className="text-xs text-ink-muted">Note</p>
+            <p className="mt-0.5 text-ink">{entry.note || "—"}</p>
+          </div>
+          <div>
+            <p className="mb-1.5 text-xs text-ink-muted">Receipt</p>
+            {entry.receiptSignedUrl ? (
+              <ReceiptThumb
+                signedUrl={entry.receiptSignedUrl}
+                isPdf={isPdfReceipt(entry)}
+                name={entry.receipt_file_name ?? "Receipt"}
+                size="h-24 w-24"
+              />
+            ) : (
+              <p className="text-ink-muted">No receipt attached</p>
+            )}
+          </div>
+          <div>
+            <p className="mb-1.5 text-xs text-ink-muted">Status</p>
+            <StatusBadge entry={entry} showBadge />
+            <div className="mt-2">
+              <StatusActions entry={entry} role={role} filter={filter} onChanged={onChanged} />
+            </div>
+          </div>
+        </div>
+
+        {role === "admin" && (
+          <div className="mt-5 flex gap-2 border-t border-border pt-4">
+            <button
+              onClick={() => {
+                onClose();
+                onEdit();
+              }}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-sm text-ink hover:bg-white/5"
+            >
+              <PencilIcon className="h-3.5 w-3.5" /> Edit
+            </button>
+            <button
+              onClick={() => {
+                onClose();
+                onDelete();
+              }}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm text-unpaid-ink hover:bg-unpaid"
+            >
+              <TrashIcon className="h-3.5 w-3.5" /> Delete
+            </button>
+          </div>
+        )}
+      </div>
+    </div>,
+    document.body,
   );
 }
 
