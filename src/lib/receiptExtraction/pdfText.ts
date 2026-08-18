@@ -1,4 +1,4 @@
-import { PDFParse } from "pdf-parse";
+import pdfParse from "pdf-parse/lib/pdf-parse.js";
 
 // A scanned/image-only PDF (or a corrupt one) has no real text layer —
 // pdf-parse either throws or returns near-nothing. Anything under this
@@ -8,16 +8,12 @@ import { PDFParse } from "pdf-parse";
 const MIN_SUBSTANTIAL_CHARS = 40;
 
 export async function extractPdfText(bytes: Buffer): Promise<string> {
-  let parser: PDFParse | null = null;
   try {
-    parser = new PDFParse({ data: bytes });
-    const result = await parser.getText();
+    const result = await pdfParse(bytes);
     return result.text ?? "";
   } catch (err) {
     console.error("pdf-parse failed:", err);
     return "";
-  } finally {
-    await parser?.destroy();
   }
 }
 
