@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentRole } from "@/lib/roles";
 import { NextResponse } from "next/server";
 import type { Entry } from "@/lib/summary";
+import { isPaidFilter, matchesPaidFilter } from "@/lib/paidFilter";
 
 function csvEscape(value: string) {
   if (/[",\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
@@ -63,7 +64,7 @@ function uniqueFileName(baseName: string, used: Set<string>) {
   return candidate;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   // Any signed-in role can export — viewers can read every entries row
   // already (entries_viewer_select), so this just matches what they can
   // already see, not a new permission.
@@ -71,6 +72,9 @@ export async function GET() {
   if (!role) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
+
+  const filterParam = new URL(request.url).searchParams.get("filter");
+  const filter = isPaidFilter(filterParam) ? filterParam : "all";
 
   const supabase = await createClient();
   const { data: entries, error } = await supabase
@@ -83,7 +87,7 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const rows = (entries ?? []) as Entry[];
+  const rows = ((entries ?? []) as Entry[]).filter((e) => matchesPaidFilter(e, filter));
   const zip = new JSZip();
   const receiptsFolder = zip.folder("receipts")!;
   const usedNames = new Set<string>();
@@ -115,7 +119,7 @@ export async function GET() {
     status: 200,
     headers: {
       "Content-Type": "application/zip",
-      "Content-Disposition": `attachment; filename="badminton-ledger-${new Date().toISOString().slice(0, 10)}.zip"`,
+      "Content-Disposition": `attachment; filename="badminton-ledger-${filter}-${new Date().toISOString().slice(0, 10)}.zip"`,
     },
   });
 }

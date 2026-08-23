@@ -7,6 +7,7 @@ import type { Entry } from "@/lib/summary";
 import type { Role } from "@/lib/roles";
 import { PRESET_CATEGORIES } from "@/lib/categories";
 import { todayLocalISODate, formatDateUK, formatDateTimeUK } from "@/lib/date";
+import { type PaidFilter, matchesPaidFilter } from "@/lib/paidFilter";
 import { MarkPaidControl } from "./MarkPaidControl";
 import { ReceiptThumb } from "./ReceiptThumb";
 import { ExportCsvButton } from "./ExportCsvButton";
@@ -14,8 +15,6 @@ import { confirmAsync } from "./ConfirmDialog";
 import { CloseIcon, DotsIcon, FileIcon, PencilIcon, TrashIcon, UndoIcon } from "./icons";
 
 type Row = Entry & { receiptSignedUrl: string | null };
-
-type PaidFilter = "unpaid" | "paid" | "awaiting" | "received" | "all";
 
 const FILTER_LABELS: Record<PaidFilter, string> = {
   unpaid: "Unpaid",
@@ -264,13 +263,7 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
   // log defaults to everything, unfiltered.
   const [filter, setFilter] = useState<PaidFilter>(role === "viewer" ? "unpaid" : "all");
 
-  const visibleEntries = entries.filter((e) => {
-    if (filter === "unpaid") return !e.paid;
-    if (filter === "paid") return e.paid;
-    if (filter === "awaiting") return e.paid && !e.received;
-    if (filter === "received") return e.received;
-    return true;
-  });
+  const visibleEntries = entries.filter((e) => matchesPaidFilter(e, filter));
 
   // Every filter except All narrows to a single implied status —
   // repeating that badge on each row is just noise.
@@ -324,7 +317,7 @@ export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
       <div className="sticky top-16 z-20 rounded-t-2xl border-b border-border bg-card/70 backdrop-blur-lg">
         <div className="flex items-center justify-between gap-3 px-4 pt-4">
           <h2 className="text-lg font-semibold text-ink">Ledger</h2>
-          <ExportCsvButton />
+          <ExportCsvButton filter={filter} filterLabel={FILTER_LABELS[filter]} />
         </div>
         <div className="scrollbar-hide flex gap-2 overflow-x-auto px-4 py-4">
           {tabs.map((f) => (
