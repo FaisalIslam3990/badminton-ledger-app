@@ -12,7 +12,7 @@ import { MarkPaidControl } from "./MarkPaidControl";
 import { ReceiptThumb } from "./ReceiptThumb";
 import { ExportCsvButton } from "./ExportCsvButton";
 import { confirmAsync } from "./ConfirmDialog";
-import { CloseIcon, DotsIcon, FileIcon, PencilIcon, TrashIcon, UndoIcon } from "./icons";
+import { CheckIcon, CloseIcon, DotsIcon, FileIcon, PencilIcon, TrashIcon, UndoIcon } from "./icons";
 
 type Row = Entry & { receiptSignedUrl: string | null };
 
@@ -99,6 +99,19 @@ function entryActions(entry: Row, onChanged: () => void) {
     async confirmReceived() {
       await patch({ received: true, received_at: todayLocalISODate() });
     },
+    // Skips the normal viewer-pays-then-admin-confirms flow for cases
+    // the admin already knows are settled (paid in cash, reimbursed
+    // outside the app, etc.) — stamps both paid and received together
+    // so the record doesn't end up "received" without ever being
+    // marked "paid", which no other path produces.
+    async markReceivedDirect() {
+      const ok = await confirmAsync("Mark this as received? This also marks it paid.", {
+        confirmLabel: "Mark Received",
+      });
+      if (!ok) return;
+      const today = todayLocalISODate();
+      await patch({ paid: true, paid_at: today, received: true, received_at: today });
+    },
     async undoReceived() {
       const ok = await confirmAsync("Undo confirming this as received?", { confirmLabel: "Undo Received" });
       if (!ok) return;
@@ -120,10 +133,12 @@ function RowMenu({
   onEdit,
   onDelete,
   undo,
+  markReceived,
 }: {
   onEdit: () => void;
   onDelete: () => void;
   undo?: { label: string; onClick: () => void };
+  markReceived?: { label: string; onClick: () => void };
 }) {
   const [open, setOpen] = useState(false);
   const [coords, setCoords] = useState<{ top: number; left: number; origin: string } | null>(null);
@@ -147,7 +162,7 @@ function RowMenu({
       // for whether it actually fits before the bottom of the screen —
       // for a row near the bottom of the visible viewport, that cut
       // "Delete" off. Flip to open upward when there isn't room below.
-      const itemCount = 2 + (undo ? 1 : 0);
+      const itemCount = 2 + (undo ? 1 : 0) + (markReceived ? 1 : 0);
       const estimatedHeight = itemCount * 40 + 8;
       const viewportHeight = window.innerHeight;
       const fitsBelow = rect.bottom + 4 + estimatedHeight <= viewportHeight - 8;
@@ -196,6 +211,17 @@ function RowMenu({
               className="card card-floating dropdown-enter fixed z-40 w-48 p-1 text-sm"
               style={{ top: coords.top, left: coords.left, transformOrigin: coords.origin }}
             >
+              {markReceived && (
+                <button
+                  onClick={() => {
+                    setOpen(false);
+                    markReceived.onClick();
+                  }}
+                  className="pressable flex w-full items-center gap-2 whitespace-nowrap rounded-lg px-2 py-2 text-left text-received-ink hover:bg-received"
+                >
+                  <CheckIcon className="h-3.5 w-3.5" /> {markReceived.label}
+                </button>
+              )}
               {undo && (
                 <button
                   onClick={() => {
@@ -247,13 +273,18 @@ function AdminRowMenu({
   onDelete: () => void;
   onChanged: () => void;
 }) {
-  const { undoSent, undoReceived } = entryActions(entry, onChanged);
+  const { undoSent, undoReceived, markReceivedDirect } = entryActions(entry, onChanged);
   const undo = entry.received
     ? { label: "Undo Received", onClick: undoReceived }
     : entry.paid
       ? { label: "Undo Payment", onClick: undoSent }
       : undefined;
-  return <RowMenu onEdit={onEdit} onDelete={onDelete} undo={undo} />;
+  // Only offered from true Unpaid — once paid, the normal "Confirm
+  // Received" action (StatusActions) already covers it, so this isn't
+  // duplicated for the Awaiting state.
+  const markReceived =
+    !entry.paid && !entry.received ? { label: "Mark Received", onClick: markReceivedDirect } : undefined;
+  return <RowMenu onEdit={onEdit} onDelete={onDelete} undo={undo} markReceived={markReceived} />;
 }
 
 export function LedgerTable({ entries, role }: { entries: Row[]; role: Role }) {
