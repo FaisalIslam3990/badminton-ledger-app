@@ -65,6 +65,11 @@ export function SummaryPanel({ entries }: { entries: Entry[] }) {
   const pct = (n: number) => Math.min(100, Math.max(0, (n / GRANT_AWARDED) * 100));
   const spentWidth = pct(totalSpent);
   const compostWidth = Math.min(pct(compostSoFar), 100 - spentWidth);
+  // Compost not yet taken is still spoken for — it's already out of the
+  // spendable budget — so it sits at the far end of the bar. Without it
+  // the empty part of the bar wouldn't match Remaining to Spend.
+  const compostToCome = Math.max(0, COMPOST_LEAGUE_FEE - compostSoFar);
+  const comingWidth = Math.min(pct(compostToCome), 100 - spentWidth - compostWidth);
   const owedToYou = totalSpent - totalReceived;
 
   return (
@@ -83,6 +88,7 @@ export function SummaryPanel({ entries }: { entries: Entry[] }) {
         <div className="mt-4 flex h-2.5 w-full overflow-hidden rounded-full bg-white/15">
           <div className={overspent ? "bg-red-300" : "bg-accent"} style={{ width: `${spentWidth}%` }} />
           <div className="bg-amber-300" style={{ width: `${compostWidth}%` }} />
+          <div className="ml-auto bg-amber-300/40" style={{ width: `${comingWidth}%` }} />
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-white/75">
           <span className="flex items-center gap-1.5">
@@ -91,7 +97,11 @@ export function SummaryPanel({ entries }: { entries: Entry[] }) {
           </span>
           <span className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-amber-300" />
-            Compost {visible ? gbp(compostSoFar) : MASK} of {visible ? gbp(COMPOST_LEAGUE_FEE) : MASK}
+            Compost taken {visible ? gbp(compostSoFar) : MASK}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-amber-300/40" />
+            Compost to come {visible ? gbp(compostToCome) : MASK}
           </span>
         </div>
         <p className="mt-1.5 text-[11px] text-white/70">From {visible ? gbp(AVAILABLE_BUDGET) : MASK}</p>
