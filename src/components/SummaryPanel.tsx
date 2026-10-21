@@ -1,6 +1,6 @@
 "use client";
 
-import { AVAILABLE_BUDGET, COMPOST_LEAGUE_FEE, GRANT_AWARDED } from "@/lib/budget";
+import { AVAILABLE_BUDGET, COMPOST_LEAGUE_FEE_RATE, GRANT_AWARDED, compostFeeOn } from "@/lib/budget";
 import { computeSummary, type Entry } from "@/lib/summary";
 import { GrantBreakdownToggle } from "@/components/GrantBreakdown";
 import { RemainingAmount } from "@/components/RemainingAmount";
@@ -80,8 +80,8 @@ export function SummaryPanel({ entries }: { entries: Entry[] }) {
         <GrantBreakdownToggle
           breakdown={
             visible
-              ? `Grant ${gbp(GRANT_AWARDED)} − Compost Fee ${gbp(COMPOST_LEAGUE_FEE)} = Available ${gbp(AVAILABLE_BUDGET)}`
-              : `Grant ${MASK} − Compost Fee ${MASK} = Available ${MASK}`
+              ? `Grant ${gbp(GRANT_AWARDED)} ÷ ${1 + COMPOST_LEAGUE_FEE_RATE} (compost takes ${COMPOST_LEAGUE_FEE_RATE * 100}% of spend) = Available ${gbp(AVAILABLE_BUDGET)}. Compost so far: ${gbp(compostFeeOn(totalSpent))}`
+              : `Grant ${MASK} ÷ ${1 + COMPOST_LEAGUE_FEE_RATE} (compost takes ${COMPOST_LEAGUE_FEE_RATE * 100}% of spend) = Available ${MASK}. Compost so far: ${MASK}`
           }
         />
       </div>

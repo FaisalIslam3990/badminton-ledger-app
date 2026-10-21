@@ -1,7 +1,22 @@
 export const GRANT_AWARDED = 4999.62;
+
+// Compost charges 3% of what the club actually spends — on top of the
+// spend itself, not a flat cut of the grant. So every £1 spent draws
+// £1.03 from the grant, and the most the club can spend is the grant
+// divided by 1.03. (The grant is exactly £4,854.00 + 3% = £4,999.62,
+// which is how this was confirmed.)
 export const COMPOST_LEAGUE_FEE_RATE = 0.03;
-export const COMPOST_LEAGUE_FEE = 149.99;
-export const AVAILABLE_BUDGET = GRANT_AWARDED - COMPOST_LEAGUE_FEE;
+
+const roundToPence = (n: number) => Math.round(n * 100) / 100;
+
+// The most the club can spend, once compost's share of that spend is
+// accounted for.
+export const AVAILABLE_BUDGET = roundToPence(GRANT_AWARDED / (1 + COMPOST_LEAGUE_FEE_RATE));
+
+// Compost's fee on a given amount of spend.
+export function compostFeeOn(spent: number) {
+  return roundToPence(spent * COMPOST_LEAGUE_FEE_RATE);
+}
 
 // Fixed facts from the signed grant agreement — not derived from
 // ledger entries. `status: "received"` is set by hand as each tranche
