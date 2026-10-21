@@ -8,7 +8,6 @@ import {
   compostFeeOn,
 } from "@/lib/budget";
 import { computeSummary, type Entry } from "@/lib/summary";
-import { GrantBreakdownToggle } from "@/components/GrantBreakdown";
 import { RemainingAmount } from "@/components/RemainingAmount";
 import { useAmountVisibility } from "@/components/AmountVisibility";
 
@@ -45,32 +44,25 @@ function StatTile({
   );
 }
 
-// Remaining to Spend is the headline; the meter is its chart — how much
-// of the Available Budget the spend-to-date has used up. Total Spent and
-// Total Received flank it as the two numbers that actually feed that
-// picture (what's gone out, what's been paid back), rather than as
-// disconnected tiles. Grant/Compost/Available stay as a small caption:
-// the arithmetic that gets you to the meter's ceiling, not the headline.
-// The eye toggle next to the headline gates the budget figures (shared
+// The hero answers three questions and nothing more: how much can I
+// still spend (the headline), how far through am I (a plain bar with a
+// percentage — the spent figure itself lives in the Total Spent tile
+// below, so it isn't repeated), and where did the grant go (grant,
+// compost's cut, what's left to spend, written out). Compost is
+// shown as a line in that breakdown rather than as pieces of the bar:
+// splitting the bar by compost made its empty part stop matching
+// Remaining to Spend. The eye toggle gates the budget figures (shared
 // with GrantTimeline via AmountVisibility context). Owed to You stays
 // unmasked always — it's the number Caroline needs at a glance.
 export function SummaryPanel({ entries }: { entries: Entry[] }) {
   const { visible, toggle } = useAmountVisibility();
   const { totalReceived, totalSpent, remainingToSpend } = computeSummary(entries);
   const overspent = totalSpent > AVAILABLE_BUDGET;
+  const usedPct = (totalSpent / AVAILABLE_BUDGET) * 100;
+  const meterWidth = Math.min(100, Math.max(0, usedPct));
   const compostSoFar = compostFeeOn(totalSpent);
-  // The bar is the whole £4,999.62 grant: what's been spent, plus the
-  // compost share that's come out with it. Both fill it exactly when
-  // the budget is used up.
-  const pct = (n: number) => Math.min(100, Math.max(0, (n / GRANT_AWARDED) * 100));
-  const spentWidth = pct(totalSpent);
-  const compostWidth = Math.min(pct(compostSoFar), 100 - spentWidth);
-  // Compost not yet taken is still spoken for — it's already out of the
-  // spendable budget — so it sits at the far end of the bar. Without it
-  // the empty part of the bar wouldn't match Remaining to Spend.
-  const compostToCome = Math.max(0, COMPOST_LEAGUE_FEE - compostSoFar);
-  const comingWidth = Math.min(pct(compostToCome), 100 - spentWidth - compostWidth);
   const owedToYou = totalSpent - totalReceived;
+  const show = (n: number) => (visible ? gbp(n) : MASK);
 
   return (
     <div className="card mb-8 p-6">
@@ -85,34 +77,31 @@ export function SummaryPanel({ entries }: { entries: Entry[] }) {
           onToggle={toggle}
         />
 
-        <div className="mt-4 flex h-2.5 w-full overflow-hidden rounded-full bg-white/15">
-          <div className={overspent ? "bg-red-300" : "bg-accent"} style={{ width: `${spentWidth}%` }} />
-          <div className="bg-amber-300" style={{ width: `${compostWidth}%` }} />
-          <div className="ml-auto bg-amber-300/40" style={{ width: `${comingWidth}%` }} />
+        <div className="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-white/15">
+          <div
+            className={`h-full rounded-full ${overspent ? "bg-red-300" : "bg-accent"}`}
+            style={{ width: `${meterWidth}%` }}
+          />
         </div>
-        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-white/75">
-          <span className="flex items-center gap-1.5">
-            <span className={`h-2 w-2 rounded-full ${overspent ? "bg-red-300" : "bg-accent"}`} />
-            Spent {visible ? gbp(totalSpent) : MASK}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-amber-300" />
-            Compost taken {visible ? gbp(compostSoFar) : MASK}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-amber-300/40" />
-            Compost to come {visible ? gbp(compostToCome) : MASK}
-          </span>
-        </div>
-        <p className="mt-1.5 text-[11px] text-white/70">From {visible ? gbp(AVAILABLE_BUDGET) : MASK}</p>
+        <p className="mt-1.5 text-[11px] text-white/70">
+          {visible ? `${Math.round(usedPct)}%` : MASK} of {show(AVAILABLE_BUDGET)} spent
+        </p>
 
-        <GrantBreakdownToggle
-          breakdown={
-            visible
-              ? `Grant ${gbp(GRANT_AWARDED)} − Compost Fee ${gbp(COMPOST_LEAGUE_FEE)} (${COMPOST_LEAGUE_FEE_RATE * 100}%) = Available ${gbp(AVAILABLE_BUDGET)}`
-              : `Grant ${MASK} − Compost Fee ${MASK} (${COMPOST_LEAGUE_FEE_RATE * 100}%) = Available ${MASK}`
-          }
-        />
+        <div className="mt-4 max-w-xs space-y-1 border-t border-white/15 pt-3 text-xs text-white/75">
+          <div className="flex justify-between gap-4">
+            <span>Grant</span>
+            <span className="amount">{show(GRANT_AWARDED)}</span>
+          </div>
+          <div className="flex justify-between gap-4">
+            <span>Compost ({COMPOST_LEAGUE_FEE_RATE * 100}%)</span>
+            <span className="amount">−{show(COMPOST_LEAGUE_FEE)}</span>
+          </div>
+          <p className="text-[11px] text-white/55">{show(compostSoFar)} taken so far</p>
+          <div className="flex justify-between gap-4 border-t border-white/15 pt-1 font-medium text-white">
+            <span>To spend</span>
+            <span className="amount">{show(AVAILABLE_BUDGET)}</span>
+          </div>
+        </div>
       </div>
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-stretch">
